@@ -1,0 +1,73 @@
+{
+  "project_info": {
+    "project_number": "506138053337",
+    "firebase_url": "https://heartbeat-a24c6.firebaseio.com",
+    "project_id": "heartbeat-a24c6",
+    "storage_bucket": "heartbeat-a24c6.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:506138053337:android:16f02eab76a98fde",
+        "android_client_info": {
+          "package_name": "com.example.heartbeat"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "506138053337-lnbp71n6jbd8m7mepjfrsribhujf1bgq.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC1GvlYmydOAWoFKuCPDW6svLVXMEgIzcg"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:506138053337:android:d7043d2f98206280",
+        "android_client_info": {
+          "package_name": "com.example.oaao"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "506138053337-lnbp71n6jbd8m7mepjfrsribhujf1bgq.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC1GvlYmydOAWoFKuCPDW6svLVXMEgIzcg"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
