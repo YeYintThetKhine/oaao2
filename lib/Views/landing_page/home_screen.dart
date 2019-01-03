@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/animation.dart';
 import '../../Animations/slide_right_in.dart';
 import '../../Animations/slide_up_in.dart';
-import '../../Views/records_book/profiles.dart';
 import '../../Views/doctor/doctor_type_list.dart';
 import '../../Views/medicine/medicine_list.dart';
 import '../../Views/knowledge/knowledge_main.dart';
@@ -16,6 +15,8 @@ import '../../Database/database.dart';
 import '../../Models/notification/reminder.dart';
 import 'package:intl/intl.dart';
 import 'dart:io';
+import '../../Views/records_book/profiles.dart';
+import '../../Auth/auth.dart';
 
 class MenuSetting {
   static const String myanmar = 'Myanmar';
@@ -234,21 +235,21 @@ class _HomeScreenState extends State<HomeScreen>
       builder: (context) => AlertDialog(
             title: Text(
               "Are you sure to exit the app?",
-              style: TextStyle(color: Theme.of(context).primaryColor),
+              style: TextStyle(color: Color(0xFF000000)),
             ),
             actions: <Widget>[
               FlatButton(
                   child: Text(
-                    "No",
-                    style: TextStyle(color: Theme.of(context).primaryColor),
+                    "Yes",
+                    style: TextStyle(color: Color(0xFF333333)),
                   ),
-                  onPressed: () => Navigator.of(context).pop(false)),
+                  onPressed: () => exit(0)),
               FlatButton(
                   child: Text(
-                    "Yes",
-                    style: TextStyle(color: Theme.of(context).primaryColor),
+                    "No",
+                    style: TextStyle(color: Color(0xFF333333)),
                   ),
-                  onPressed: () => exit(0))
+                  onPressed: () => Navigator.of(context).pop(false)),
             ],
           ),
     );
@@ -261,6 +262,7 @@ class _HomeScreenState extends State<HomeScreen>
           SlideRightAnimation(
               widget: ProfileScreen(
             lan: language,
+            authFunction: Authentic(),
           )));
     } else if (name == "Doctors" || name == "ဆရာဝန်များ") {
       Navigator.push(
@@ -293,6 +295,7 @@ class _HomeScreenState extends State<HomeScreen>
               widget: ChatRoom(
             appbarTitle: name,
             language: language,
+            authFunction: Authentic(),
           )));
     } else if (name == 'Hospitals' || name == "ဆေးရုံများ") {
       Navigator.push(
@@ -434,7 +437,7 @@ class _HomeScreenState extends State<HomeScreen>
                                             title: Text(
                                               reminderTitle.toUpperCase(),
                                               style: TextStyle(
-                                                  color: Color(0xFF72bb53),
+                                                  color: Color(0xFF666666),
                                                   fontSize: 16.0,
                                                   fontWeight: FontWeight.bold),
                                             ),
@@ -448,8 +451,7 @@ class _HomeScreenState extends State<HomeScreen>
                                             trailing: Text(
                                               reminderTime,
                                               style: TextStyle(
-                                                  color: Theme.of(context)
-                                                      .primaryColor,
+                                                  color: Color(0xFF666666),
                                                   fontSize: 16.0),
                                             ),
                                           ),
@@ -461,7 +463,7 @@ class _HomeScreenState extends State<HomeScreen>
                                             title: Text(
                                               appointTitle.toUpperCase(),
                                               style: TextStyle(
-                                                  color: Color(0xFF72bb53),
+                                                  color: Color(0xFF666666),
                                                   fontSize: 16.0,
                                                   fontWeight: FontWeight.bold),
                                             ),
@@ -475,8 +477,7 @@ class _HomeScreenState extends State<HomeScreen>
                                             trailing: Text(
                                               appointTime,
                                               style: TextStyle(
-                                                  color: Theme.of(context)
-                                                      .primaryColor,
+                                                  color: Color(0xFF666666),
                                                   fontSize: 16.0),
                                             ),
                                           ),
@@ -520,7 +521,7 @@ class _HomeScreenState extends State<HomeScreen>
                                 child: Text(
                                   menuNews,
                                   style: TextStyle(
-                                      color: Theme.of(context).primaryColor,
+                                      color: Color(0xFF333333),
                                       fontSize: 24.0,
                                       fontWeight: FontWeight.bold),
                                 ),
@@ -529,7 +530,7 @@ class _HomeScreenState extends State<HomeScreen>
                                 padding: const EdgeInsets.only(
                                     left: 16.0, right: 16.0),
                                 child: Divider(
-                                  color: Color.fromRGBO(0, 0, 0, 0.15),
+                                  color: Color.fromRGBO(0, 0, 0, 0.5),
                                 ),
                               ),
                               CarouselSlider(
@@ -631,8 +632,8 @@ class _HomeScreenState extends State<HomeScreen>
                                                     overflow:
                                                         TextOverflow.ellipsis,
                                                     style: TextStyle(
-                                                        color: Theme.of(context)
-                                                            .primaryColor,
+                                                        color:
+                                                            Color(0xFF333333),
                                                         height: 1.25,
                                                         fontSize: 16.0),
                                                   ),

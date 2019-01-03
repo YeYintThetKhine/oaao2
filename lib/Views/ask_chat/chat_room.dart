@@ -1,22 +1,119 @@
 import 'package:flutter/material.dart';
+import '../../Auth/auth.dart';
+import '../../Views/landing_page/login_screen.dart';
+import 'package:firebase_database/firebase_database.dart';
+import '../../Models/ask_chat/chat.dart';
+import 'dart:async';
 
 class ChatRoom extends StatefulWidget {
   final String language;
   final String appbarTitle;
-  ChatRoom({this.appbarTitle, this.language});
+  final AuthFunction authFunction;
+  ChatRoom({this.appbarTitle, this.language, this.authFunction});
   @override
   _ChatRoomState createState() =>
       _ChatRoomState(appbarTitle: appbarTitle, language: language);
+}
+
+enum AuthStatus {
+  notSignedIn,
+  signedIn,
 }
 
 class _ChatRoomState extends State<ChatRoom> with TickerProviderStateMixin {
   final String language;
   final String appbarTitle;
   _ChatRoomState({this.appbarTitle, this.language});
-
+  AuthStatus authStatus = AuthStatus.notSignedIn;
   final List<ChatMessagesArea> _messages = <ChatMessagesArea>[];
   final TextEditingController _textEditingController = TextEditingController();
   bool _isEmpty = false;
+  String userId = '';
+  String email = '';
+  List<Chat> chatList = <Chat>[];
+  List<Chat> reversedChatList = <Chat>[];
+  Chat chat;
+  DatabaseReference dbRef = FirebaseDatabase.instance.reference();
+  StreamSubscription<Event> msgSubscription;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.authFunction.getUser().then((user) {
+      if (user == null) {
+        setState(() {
+          authStatus = AuthStatus.notSignedIn;
+        });
+      } else {
+        setState(() {
+          authStatus = AuthStatus.signedIn;
+          widget.authFunction.getEmail().then((value) {
+            setState(() {
+              email = value;
+            });
+          });
+          userId = user;
+          msgSubscription = dbRef
+              .child('chat')
+              .child('users')
+              .child(userId)
+              .onChildChanged
+              .listen((Event event) {
+            ChatMessagesArea message = new ChatMessagesArea(
+              reply: event.snapshot.value['reply'],
+              animationController: AnimationController(
+                duration: Duration(milliseconds: 700),
+                vsync: this,
+              ),
+            );
+            setState(() {
+              _messages.insert(0, message);
+            });
+            message.animationController.forward();
+          });
+          dbRef
+              .child('chat')
+              .child('users')
+              .child(userId)
+              .once()
+              .then((DataSnapshot snap) {
+            if (snap.value != null) {
+              var ids = snap.value.keys;
+              var data = snap.value;
+              for (var id in ids) {
+                chat = new Chat(
+                  email: data[id]['email'],
+                  postDate: data[id]['postDate'],
+                  text: data[id]['text'],
+                  reply: data[id]['reply'],
+                );
+                chatList.add(chat);
+              }
+              reversedChatList = chatList.reversed.toList();
+            }
+            _showChatBox(reversedChatList);
+          });
+        });
+      }
+    });
+  }
+
+  _showChatBox(List<Chat> dataList) {
+    for (var item in dataList) {
+      ChatMessagesArea message = new ChatMessagesArea(
+        message: item.text,
+        reply: item.reply,
+        animationController: AnimationController(
+          duration: Duration(milliseconds: 700),
+          vsync: this,
+        ),
+      );
+      setState(() {
+        _messages.insert(0, message);
+      });
+      message.animationController.forward();
+    }
+  }
 
   @override
   void dispose() {
@@ -24,9 +121,52 @@ class _ChatRoomState extends State<ChatRoom> with TickerProviderStateMixin {
       messagesArea.animationController.dispose();
     }
     super.dispose();
+    msgSubscription.cancel();
+  }
+
+  _signOutUser() async {
+    return showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+            title: Text(
+              "Are you sure to log out?",
+              style: TextStyle(color: Color(0xFF000000)),
+            ),
+            actions: <Widget>[
+              FlatButton(
+                  child: Text(
+                    "Yes",
+                    style: TextStyle(color: Color(0xFF333333)),
+                  ),
+                  onPressed: () {
+                    widget.authFunction.signOut();
+                    setState(() {
+                      authStatus = AuthStatus.notSignedIn;
+                    });
+                    Navigator.pop(context);
+                  }),
+              FlatButton(
+                  child: Text(
+                    "No",
+                    style: TextStyle(color: Color(0xFF333333)),
+                  ),
+                  onPressed: () {
+                    Navigator.pop(context);
+                  }),
+            ],
+          ),
+    );
   }
 
   void _handleSubmitted(String text) {
+    var chatForm = <String, dynamic>{
+      'email': email,
+      'postDate': DateTime.now()
+          .toString()
+          .substring(0, DateTime.now().toString().lastIndexOf(":")),
+      'text': text,
+    };
+    dbRef.child('chat').child('users').child(userId).push().set(chatForm);
     _textEditingController.clear();
     setState(() {
       _isEmpty = false;
@@ -52,6 +192,7 @@ class _ChatRoomState extends State<ChatRoom> with TickerProviderStateMixin {
             Flexible(
               child: TextField(
                 keyboardType: TextInputType.multiline,
+                textCapitalization: TextCapitalization.sentences,
                 controller: _textEditingController,
                 onSubmitted: _handleSubmitted,
                 onChanged: (String msg) {
@@ -85,48 +226,94 @@ class _ChatRoomState extends State<ChatRoom> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    return OrientationBuilder(
-      builder: (context, orientation) {
+    switch (authStatus) {
+      case AuthStatus.notSignedIn:
         return Scaffold(
-            appBar: AppBar(
-              backgroundColor: Theme.of(context).primaryColor,
-              title: Text(
-                appbarTitle,
-                style:
-                    TextStyle(color: Theme.of(context).textTheme.title.color),
-              ),
-              iconTheme: Theme.of(context).iconTheme,
-            ),
-            body: Column(
-              children: <Widget>[
-                Flexible(
-                  child: ListView.builder(
-                    padding: EdgeInsets.all(8.0),
-                    reverse: true,
-                    itemBuilder: (_, int index) => _messages[index],
-                    itemCount: _messages.length,
+          appBar: AppBar(
+            iconTheme: Theme.of(context).iconTheme,
+          ),
+          body: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 16.0),
+                  child: Text(
+                    "You are not signed in!",
+                    style: TextStyle(fontSize: 18.0),
                   ),
                 ),
-                Divider(
-                  height: 1.0,
-                ),
-                Container(
-                  decoration: BoxDecoration(color: Theme.of(context).cardColor),
-                  child: _textSender(),
+                RaisedButton(
+                  color: Theme.of(context).primaryColor,
+                  onPressed: () {
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => LoginScreen(
+                                  authFunction: Authentic(),
+                                  language: language,
+                                )));
+                  },
+                  child: Text(
+                    "Login",
+                    style: TextStyle(
+                        color: Theme.of(context).textTheme.title.color),
+                  ),
                 )
               ],
-            ));
-      },
-    );
+            ),
+          ),
+        );
+      case AuthStatus.signedIn:
+        return OrientationBuilder(
+          builder: (context, orientation) {
+            return Scaffold(
+                appBar: AppBar(
+                  actions: <Widget>[
+                    IconButton(
+                      onPressed: _signOutUser,
+                      icon: Icon(Icons.exit_to_app),
+                    )
+                  ],
+                  backgroundColor: Theme.of(context).primaryColor,
+                  title: Text(
+                    appbarTitle,
+                    style: TextStyle(
+                        color: Theme.of(context).textTheme.title.color),
+                  ),
+                  iconTheme: Theme.of(context).iconTheme,
+                ),
+                body: Column(
+                  children: <Widget>[
+                    Flexible(
+                      child: ListView.builder(
+                        padding: EdgeInsets.all(8.0),
+                        reverse: true,
+                        itemBuilder: (_, int index) => _messages[index],
+                        itemCount: _messages.length,
+                      ),
+                    ),
+                    Divider(
+                      height: 1.0,
+                    ),
+                    Container(
+                      decoration:
+                          BoxDecoration(color: Theme.of(context).cardColor),
+                      child: _textSender(),
+                    )
+                  ],
+                ));
+          },
+        );
+    }
   }
 }
 
 class ChatMessagesArea extends StatelessWidget {
   final String message;
+  final String reply;
   final AnimationController animationController;
-  ChatMessagesArea({this.message, this.animationController});
-
-  final String _name = "User";
+  ChatMessagesArea({this.message, this.animationController, this.reply});
 
   @override
   Widget build(BuildContext context) {
@@ -134,34 +321,95 @@ class ChatMessagesArea extends StatelessWidget {
       sizeFactor:
           CurvedAnimation(parent: animationController, curve: Curves.easeOut),
       axisAlignment: 0.0,
-      child: Container(
-        margin: EdgeInsets.symmetric(vertical: 10.0),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            new Container(
-              margin: const EdgeInsets.only(right: 16.0),
-              child: new CircleAvatar(
-                  backgroundColor: Theme.of(context).primaryColor,
-                  child: Icon(
-                    Icons.person,
-                    color: Theme.of(context).textTheme.title.color,
-                  )),
-            ),
-            Expanded(
-              child: new Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  new Text(_name, style: Theme.of(context).textTheme.subhead),
-                  new Container(
-                    margin: const EdgeInsets.only(top: 5.0, right: 12.0),
-                    child: new Text(message),
+      child: Column(
+        children: [
+          message != null
+              ? Container(
+                  margin: EdgeInsets.symmetric(vertical: 8.0),
+                  child: Row(
+                    children: <Widget>[
+                      new Container(
+                        margin: const EdgeInsets.only(right: 8.0),
+                        child: new CircleAvatar(
+                            backgroundColor: Theme.of(context).primaryColor,
+                            child: Icon(
+                              Icons.person,
+                              color: Theme.of(context).textTheme.title.color,
+                            )),
+                      ),
+                      Expanded(
+                        child: new Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            new Container(
+                              margin: const EdgeInsets.only(right: 12.0),
+                              child: Container(
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: 12.0, vertical: 8.0),
+                                decoration: BoxDecoration(
+                                    color: Color.fromRGBO(60, 179, 113, 1),
+                                    borderRadius: BorderRadius.circular(50.0)),
+                                child: new Text(
+                                  message,
+                                  style: TextStyle(
+                                    fontSize: 18.0,
+                                    color:
+                                        Theme.of(context).textTheme.title.color,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-            ),
-          ],
-        ),
+                )
+              : Container(),
+          reply != null
+              ? Container(
+                  margin: EdgeInsets.symmetric(vertical: 8.0),
+                  child: Row(
+                    children: <Widget>[
+                      Expanded(
+                        child: new Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: <Widget>[
+                            new Container(
+                              margin: const EdgeInsets.only(left: 12.0),
+                              child: Container(
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: 12.0, vertical: 8.0),
+                                decoration: BoxDecoration(
+                                    color: Color.fromRGBO(60, 179, 113, 1),
+                                    borderRadius: BorderRadius.circular(50.0)),
+                                child: new Text(
+                                  reply,
+                                  style: TextStyle(
+                                    fontSize: 18.0,
+                                    color:
+                                        Theme.of(context).textTheme.title.color,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      new Container(
+                        margin: const EdgeInsets.only(left: 8.0),
+                        child: new CircleAvatar(
+                            backgroundColor: Theme.of(context).primaryColor,
+                            child: Icon(
+                              Icons.person,
+                              color: Theme.of(context).textTheme.title.color,
+                            )),
+                      ),
+                    ],
+                  ),
+                )
+              : Container()
+        ],
       ),
     );
   }

@@ -1,12 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import '../../Views/landing_page/home_screen.dart';
+import '../../Auth/auth.dart';
+import '../../Views/landing_page/signup_screen.dart';
 
 class LoginScreen extends StatefulWidget {
+  final String language;
+  final AuthFunction authFunction;
+  LoginScreen({this.language, this.authFunction});
   @override
   _LoginScreenState createState() => _LoginScreenState();
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  final String language;
+  _LoginScreenState({this.language});
   GlobalKey<ScaffoldState> _scaffold = GlobalKey<ScaffoldState>();
   final loginFormKey = GlobalKey<FormState>();
   final email = TextEditingController();
@@ -24,11 +31,8 @@ class _LoginScreenState extends State<LoginScreen> {
           _loading = true;
         });
         try {
-        FirebaseUser user = await FirebaseAuth.instance.signInWithEmailAndPassword(email: email.text, password: password.text);
-        await user.reload();
-        user = await FirebaseAuth.instance.currentUser();
-        bool flag = user.isEmailVerified;
-        if(flag == false){
+        String userId = await widget.authFunction.login(email.text, password.text);
+        if(userId == "Email is not verified yet"){
           setState(() {
             _loading = false;
           });
@@ -45,7 +49,7 @@ class _LoginScreenState extends State<LoginScreen> {
         else{
           setState(() {
             _loading = false;
-            Navigator.of(context).pushReplacementNamed('/HomeScreen');
+            Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (BuildContext context) => HomeScreen()));
           });
         }
         } catch (e) {
@@ -65,6 +69,16 @@ class _LoginScreenState extends State<LoginScreen> {
         }
       }
     }
+
+  
+  void _routeToSignUp() {
+    Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (BuildContext context) => SignUpScreen(
+                  language: language,
+                )));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -224,6 +238,38 @@ class _LoginScreenState extends State<LoginScreen> {
                                       ),
                                     ),
                                   ),
+                                  Container(
+                                      margin: EdgeInsets.only(top: 8.0),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: <Widget>[
+                                          Text(
+                                            "Don't have an account?",
+                                            style: TextStyle(
+                                                color: Theme.of(context)
+                                                        .textTheme.title.color),
+                                          ),
+                                          Container(
+                                            child: FlatButton(
+                                              highlightColor:
+                                                  Colors.transparent,
+                                              splashColor: Color.fromRGBO(
+                                                  0, 0, 0, 0.05),
+                                              padding: EdgeInsets.all(0.0),
+                                              onPressed: _routeToSignUp,
+                                              child: Text(
+                                                "Sign Up",
+                                                style: TextStyle(
+                                                    fontSize: 14.0,
+                                                    color: Theme.of(context)
+                                                        .textTheme.title.color),
+                                              ),
+                                            ),
+                                          )
+                                        ],
+                                      ),
+                                    ),
                                 ],
                               )),
                             ),

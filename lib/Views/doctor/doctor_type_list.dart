@@ -26,6 +26,7 @@ class _DoctorTypeListState extends State<DoctorTypeList>
   List<DocType> docTypeList = <DocType>[];
   List<String> countList = [];
   var _isLoading = true;
+  var _isNull = false;
   var _connection;
   var _conStatus = "Unknown";
   Connectivity connectivity;
@@ -71,16 +72,23 @@ class _DoctorTypeListState extends State<DoctorTypeList>
         .child(language)
         .once()
         .then((DataSnapshot dataSnap) {
-      var types = dataSnap.value.keys;
-      var typeIcons = dataSnap.value;
-      for (var type in types) {
-        docType = new DocType(
-          type: type,
-          typeIcon: typeIcons[type]['icon'],
-        );
-        docTypeList.add(docType);
+      if (dataSnap.value == null) {
+        setState(() {
+          _isLoading = false;
+          _isNull = true;
+        });
+      } else {
+        var types = dataSnap.value.keys;
+        var typeIcons = dataSnap.value;
+        for (var type in types) {
+          docType = new DocType(
+            type: type,
+            typeIcon: typeIcons[type]['icon'],
+          );
+          docTypeList.add(docType);
+        }
+        _getDocCount(types);
       }
-      _getDocCount(types);
     });
   }
 
@@ -163,82 +171,99 @@ class _DoctorTypeListState extends State<DoctorTypeList>
                                   Theme.of(context).primaryColor),
                             ),
                           )
-                        : ListView.builder(
-                            itemCount: countList.length,
-                            itemBuilder: (context, i) {
-                              return Transform(
-                                transform: Matrix4.translationValues(
-                                    animation.value * device.width, 0.0, 0.0),
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(10.0),
-                                      border: Border.all(
-                                          width: 1.0,
-                                          color:
-                                              Theme.of(context).primaryColor),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          blurRadius: 5.0,
-                                          color:
-                                              Color.fromRGBO(114, 187, 83, 0.5),
-                                        )
-                                      ]),
-                                  margin:
-                                      EdgeInsets.fromLTRB(12.0, 8.0, 12.0, 0.0),
-                                  child: FlatButton(
-                                    shape: RoundedRectangleBorder(
-                                        borderRadius:
-                                            BorderRadius.circular(10.0)),
-                                    padding: EdgeInsets.all(0.0),
-                                    color:
-                                        Theme.of(context).textTheme.title.color,
-                                    onPressed: () {
-                                      _docListRoute(docTypeList[i].type);
-                                    },
-                                    child: Padding(
-                                      padding: const EdgeInsets.only(
-                                          top: 8.0, bottom: 8.0),
-                                      child: ListTile(
-                                        leading: CircleAvatar(
-                                          backgroundColor:
-                                              Theme.of(context).primaryColor,
-                                          radius: 28.0,
-                                          child: Image.network(
-                                            docTypeList[i].typeIcon,
-                                            width: 45.0,
-                                            color: Theme.of(context)
-                                                .textTheme
-                                                .title
-                                                .color,
-                                          ),
-                                        ),
-                                        title: Text(
-                                          docTypeList[i].type,
-                                          style: TextStyle(
-                                              fontSize: 18.0,
+                        : _isNull == true
+                            ? Container(
+                                child: Center(
+                                  child: Text(
+                                    "Not Available!",
+                                    style: TextStyle(
+                                        color: Color(0xFF666666),
+                                        fontSize: 20.0),
+                                  ),
+                                ),
+                              )
+                            : ListView.builder(
+                                itemCount: countList.length,
+                                itemBuilder: (context, i) {
+                                  return Transform(
+                                    transform: Matrix4.translationValues(
+                                        animation.value * device.width,
+                                        0.0,
+                                        0.0),
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                          borderRadius:
+                                              BorderRadius.circular(10.0),
+                                          border: Border.all(
+                                              width: 1.0,
                                               color: Theme.of(context)
                                                   .primaryColor),
-                                        ),
-                                        trailing: Chip(
-                                          backgroundColor:
-                                              Theme.of(context).primaryColor,
-                                          label: Text(
-                                            countList[i],
-                                            style: TextStyle(
+                                          boxShadow: [
+                                            BoxShadow(
+                                              blurRadius: 5.0,
+                                              color: Color.fromRGBO(
+                                                  114, 187, 83, 0.5),
+                                            )
+                                          ]),
+                                      margin: EdgeInsets.fromLTRB(
+                                          12.0, 8.0, 12.0, 0.0),
+                                      child: FlatButton(
+                                        shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(10.0)),
+                                        padding: EdgeInsets.all(0.0),
+                                        color: Theme.of(context)
+                                            .textTheme
+                                            .title
+                                            .color,
+                                        onPressed: () {
+                                          _docListRoute(docTypeList[i].type);
+                                        },
+                                        child: Padding(
+                                          padding: const EdgeInsets.only(
+                                              top: 8.0, bottom: 8.0),
+                                          child: ListTile(
+                                            leading: CircleAvatar(
+                                              backgroundColor: Theme.of(context)
+                                                  .primaryColor,
+                                              radius: 28.0,
+                                              child: Image.network(
+                                                docTypeList[i].typeIcon,
+                                                width: 45.0,
                                                 color: Theme.of(context)
                                                     .textTheme
                                                     .title
                                                     .color,
-                                                fontWeight: FontWeight.bold),
+                                              ),
+                                            ),
+                                            title: Text(
+                                              docTypeList[i].type,
+                                              style: TextStyle(
+                                                  fontSize: 18.0,
+                                                  color: Theme.of(context)
+                                                      .primaryColor),
+                                            ),
+                                            trailing: Chip(
+                                              backgroundColor: Theme.of(context)
+                                                  .primaryColor,
+                                              label: Text(
+                                                countList[i],
+                                                style: TextStyle(
+                                                    color: Theme.of(context)
+                                                        .textTheme
+                                                        .title
+                                                        .color,
+                                                    fontWeight:
+                                                        FontWeight.bold),
+                                              ),
+                                            ),
                                           ),
                                         ),
                                       ),
                                     ),
-                                  ),
-                                ),
-                              );
-                            },
-                          ));
+                                  );
+                                },
+                              ));
           },
         );
       },

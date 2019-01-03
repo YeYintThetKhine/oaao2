@@ -2,12 +2,20 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 import '../../Database/database.dart';
 import '../../Models/records_book/record_book.dart';
+import '../../Views/landing_page/login_screen.dart';
 // import '../../Views/records_book/medrecords.dart';
+import '../../Auth/auth.dart';
 
 class ProfileScreen extends StatefulWidget {
   final String lan;
-  ProfileScreen({@required this.lan});
+  final AuthFunction authFunction;
+  ProfileScreen({@required this.lan, this.authFunction});
   ProfileScreenState createState() => ProfileScreenState(language: lan);
+}
+
+enum AuthStatus {
+  notSignedIn,
+  signedIn,
 }
 
 Future<List<User>> fetchusersFromDatabase() async {
@@ -27,6 +35,7 @@ class SettingData {
 
 class ProfileScreenState extends State<ProfileScreen> {
   var loading = true;
+  AuthStatus authStatus = AuthStatus.notSignedIn;
   Future<List<User>> fetchusersFromDatabase() async {
     var dbHelper = DBHelper();
     Future<List<User>> users = dbHelper.fetchUserList();
@@ -69,39 +78,87 @@ class ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
+  void _routeToLogin() {
+    Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+            builder: (context) => LoginScreen(
+                  authFunction: Authentic(),
+                  language: language,
+                )));
+  }
+
   @override
   void initState() {
     super.initState();
+    widget.authFunction.getUser().then((user) {
+      setState(() {
+        authStatus =
+            user == null ? AuthStatus.notSignedIn : AuthStatus.signedIn;
+      });
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'PROFILES',
-          style: TextStyle(color: Theme.of(context).textTheme.title.color),
-        ),
-        iconTheme: Theme.of(context).iconTheme,
-        backgroundColor: maintheme,
-        actions: <Widget>[
-          IconButton(
-            icon: Icon(Icons.star),
-            onPressed: () {},
+    switch (authStatus) {
+      case AuthStatus.notSignedIn:
+        return Scaffold(
+          appBar: AppBar(
+            iconTheme: Theme.of(context).iconTheme,
           ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: maintheme,
-        tooltip: 'Create Profile',
-        child: Icon(
-          Icons.person_add,
-          size: 32.0,
-        ),
-        onPressed: _createProfile,
-      ),
-      body: _profileBody(),
-    );
+          body: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                Padding(
+                  padding: EdgeInsets.only(bottom: 16.0),
+                  child: Text(
+                    "You are not signed in!",
+                    style: TextStyle(fontSize: 18.0),
+                  ),
+                ),
+                RaisedButton(
+                  color: Theme.of(context).primaryColor,
+                  onPressed: _routeToLogin,
+                  child: Text(
+                    "Login",
+                    style: TextStyle(
+                        color: Theme.of(context).textTheme.title.color),
+                  ),
+                )
+              ],
+            ),
+          ),
+        );
+      case AuthStatus.signedIn:
+        return Scaffold(
+          appBar: AppBar(
+            title: Text(
+              'PROFILES',
+              style: TextStyle(color: Theme.of(context).textTheme.title.color),
+            ),
+            iconTheme: Theme.of(context).iconTheme,
+            backgroundColor: maintheme,
+            actions: <Widget>[
+              IconButton(
+                icon: Icon(Icons.star),
+                onPressed: () {},
+              ),
+            ],
+          ),
+          floatingActionButton: FloatingActionButton(
+            backgroundColor: maintheme,
+            tooltip: 'Create Profile',
+            child: Icon(
+              Icons.person_add,
+              size: 32.0,
+            ),
+            onPressed: _createProfile,
+          ),
+          body: _profileBody(),
+        );
+    }
   }
 
   void _createProfile() {

@@ -54,7 +54,7 @@ class _ReminderEditState extends State<ReminderEdit> {
     if (payload != null) {
       debugPrint('notification payload: ' + payload);
     }
-    await Navigator.pushNamed(context, '/HomeScreen');
+    await Navigator.popAndPushNamed(context, '/HomeScreen');
   }
 
   Future _alert(String alert, String title, String note) async {
@@ -102,7 +102,7 @@ class _ReminderEditState extends State<ReminderEdit> {
         dbhelper.updateReminder(reminder);
         setState(() {
           _alert(alretString, reminder.remindAction, reminder.remindNote);
-          Navigator.pushReplacementNamed(context, '/ReminderList');
+          Navigator.popAndPushNamed(context, '/ReminderList');
         });
       }
     }

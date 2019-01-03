@@ -1,13 +1,18 @@
 import 'package:flutter/material.dart';
 import 'login_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../../Auth/auth.dart';
 
 class SignUpScreen extends StatefulWidget {
+  final String language;
+  SignUpScreen({this.language});
   @override
   _SignUpScreenState createState() => _SignUpScreenState();
 }
 
 class _SignUpScreenState extends State<SignUpScreen> {
+  final String language;
+  _SignUpScreenState({this.language});
   var _loading = false;
   final signUpFormKey = GlobalKey<FormState>();
   final email = TextEditingController();
@@ -39,8 +44,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
   }
 
   void _routeToLogin() {
-    Navigator.push(context,
-        MaterialPageRoute(builder: (BuildContext context) => LoginScreen()));
+    Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (BuildContext context) => LoginScreen(
+                  language: language,
+                  authFunction: Authentic(),
+                )));
   }
 
   @override
@@ -50,6 +60,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
       builder: (context, orientation) {
         return Scaffold(
           body: CustomScrollView(slivers: <Widget>[
+            SliverAppBar(
+              iconTheme: Theme.of(context).iconTheme,
+            ),
             SliverList(
               delegate: SliverChildBuilderDelegate(
                   (context, index) => Container(
@@ -59,7 +72,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         alignment: Alignment.center,
                         color: Theme.of(context).primaryColor,
                         height: orientation == Orientation.portrait
-                            ? device.height
+                            ? device.height - 24.0 - kToolbarHeight
                             : null,
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,

@@ -227,7 +227,7 @@ class _ReminderListState extends State<ReminderList> {
                   leading: IconButton(
                     icon: Icon(Icons.arrow_back),
                     onPressed: () {
-                      Navigator.pushReplacementNamed(context, '/HomeScreen');
+                      Navigator.popAndPushNamed(context, '/HomeScreen');
                     },
                   ),
                   iconTheme: Theme.of(context).iconTheme,

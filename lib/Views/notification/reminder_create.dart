@@ -106,7 +106,7 @@ class _ReminderCreateState extends State<ReminderCreate> {
         setState(() {
           reminderValue = '';
           _alert(alretString, reminder.remindAction, reminder.remindNote);
-          Navigator.pushReplacementNamed(context, '/ReminderList');
+          Navigator.popAndPushNamed(context, '/ReminderList');
         });
         return true;
       }
@@ -126,7 +126,7 @@ class _ReminderCreateState extends State<ReminderCreate> {
             leading: IconButton(
               icon: Icon(Icons.arrow_back),
               onPressed: () {
-                Navigator.pushNamed(context, '/ReminderList');
+                Navigator.popAndPushNamed(context, '/ReminderList');
               },
             ),
             backgroundColor: Theme.of(context).primaryColor,
