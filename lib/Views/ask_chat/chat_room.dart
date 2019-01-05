@@ -36,9 +36,16 @@ class _ChatRoomState extends State<ChatRoom> with TickerProviderStateMixin {
   DatabaseReference dbRef = FirebaseDatabase.instance.reference();
   StreamSubscription<Event> msgSubscription;
 
+  String logout = "Are you sure to log out?";
+  String logoutYes = 'Yes';
+  String logoutNo = 'No';
+  String notSignedIn = 'You are not signed in!';
+  String login = 'Login';
+
   @override
   void initState() {
     super.initState();
+    _changeLanguage(language);
     widget.authFunction.getUser().then((user) {
       if (user == null) {
         setState(() {
@@ -62,7 +69,7 @@ class _ChatRoomState extends State<ChatRoom> with TickerProviderStateMixin {
             ChatMessagesArea message = new ChatMessagesArea(
               reply: event.snapshot.value['reply'],
               animationController: AnimationController(
-                duration: Duration(milliseconds: 700),
+                duration: Duration(milliseconds: 300),
                 vsync: this,
               ),
             );
@@ -98,13 +105,25 @@ class _ChatRoomState extends State<ChatRoom> with TickerProviderStateMixin {
     });
   }
 
+  _changeLanguage(String lan) {
+    if (lan == 'mm') {
+      setState(() {
+        logout = 'အကောင့်ထွက်မည်';
+        logoutYes = 'လုပ်ဆောင်မည်';
+        logoutNo = 'မလုပ်ဆောင်ပါ';
+        notSignedIn = 'အကောင့်မဝင်ထားပါ';
+        login = 'အကောင့်ဝင်ရန်';
+      });
+    }
+  }
+
   _showChatBox(List<Chat> dataList) {
     for (var item in dataList) {
       ChatMessagesArea message = new ChatMessagesArea(
         message: item.text,
         reply: item.reply,
         animationController: AnimationController(
-          duration: Duration(milliseconds: 700),
+          duration: Duration(milliseconds: 200),
           vsync: this,
         ),
       );
@@ -129,13 +148,13 @@ class _ChatRoomState extends State<ChatRoom> with TickerProviderStateMixin {
       context: context,
       builder: (context) => AlertDialog(
             title: Text(
-              "Are you sure to log out?",
+              logout,
               style: TextStyle(color: Color(0xFF000000)),
             ),
             actions: <Widget>[
               FlatButton(
                   child: Text(
-                    "Yes",
+                    logoutYes,
                     style: TextStyle(color: Color(0xFF333333)),
                   ),
                   onPressed: () {
@@ -147,7 +166,7 @@ class _ChatRoomState extends State<ChatRoom> with TickerProviderStateMixin {
                   }),
               FlatButton(
                   child: Text(
-                    "No",
+                    logoutNo,
                     style: TextStyle(color: Color(0xFF333333)),
                   ),
                   onPressed: () {
@@ -174,7 +193,7 @@ class _ChatRoomState extends State<ChatRoom> with TickerProviderStateMixin {
     ChatMessagesArea message = new ChatMessagesArea(
       message: text,
       animationController: AnimationController(
-        duration: Duration(milliseconds: 700),
+        duration: Duration(milliseconds: 300),
         vsync: this,
       ),
     );
@@ -239,7 +258,7 @@ class _ChatRoomState extends State<ChatRoom> with TickerProviderStateMixin {
                 Padding(
                   padding: const EdgeInsets.only(bottom: 16.0),
                   child: Text(
-                    "You are not signed in!",
+                    notSignedIn,
                     style: TextStyle(fontSize: 18.0),
                   ),
                 ),
@@ -255,7 +274,7 @@ class _ChatRoomState extends State<ChatRoom> with TickerProviderStateMixin {
                                 )));
                   },
                   child: Text(
-                    "Login",
+                    login,
                     style: TextStyle(
                         color: Theme.of(context).textTheme.title.color),
                   ),
@@ -328,49 +347,6 @@ class ChatMessagesArea extends StatelessWidget {
                   margin: EdgeInsets.symmetric(vertical: 8.0),
                   child: Row(
                     children: <Widget>[
-                      new Container(
-                        margin: const EdgeInsets.only(right: 8.0),
-                        child: new CircleAvatar(
-                            backgroundColor: Theme.of(context).primaryColor,
-                            child: Icon(
-                              Icons.person,
-                              color: Theme.of(context).textTheme.title.color,
-                            )),
-                      ),
-                      Expanded(
-                        child: new Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: <Widget>[
-                            new Container(
-                              margin: const EdgeInsets.only(right: 12.0),
-                              child: Container(
-                                padding: EdgeInsets.symmetric(
-                                    horizontal: 12.0, vertical: 8.0),
-                                decoration: BoxDecoration(
-                                    color: Color.fromRGBO(60, 179, 113, 1),
-                                    borderRadius: BorderRadius.circular(50.0)),
-                                child: new Text(
-                                  message,
-                                  style: TextStyle(
-                                    fontSize: 18.0,
-                                    color:
-                                        Theme.of(context).textTheme.title.color,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                )
-              : Container(),
-          reply != null
-              ? Container(
-                  margin: EdgeInsets.symmetric(vertical: 8.0),
-                  child: Row(
-                    children: <Widget>[
                       Expanded(
                         child: new Column(
                           crossAxisAlignment: CrossAxisAlignment.end,
@@ -379,14 +355,14 @@ class ChatMessagesArea extends StatelessWidget {
                               margin: const EdgeInsets.only(left: 12.0),
                               child: Container(
                                 padding: EdgeInsets.symmetric(
-                                    horizontal: 12.0, vertical: 8.0),
+                                    horizontal: 12.0, vertical: 12.0),
                                 decoration: BoxDecoration(
                                     color: Color.fromRGBO(60, 179, 113, 1),
                                     borderRadius: BorderRadius.circular(50.0)),
                                 child: new Text(
-                                  reply,
+                                  message,
                                   style: TextStyle(
-                                    fontSize: 18.0,
+                                    fontSize: 16.0,
                                     color:
                                         Theme.of(context).textTheme.title.color,
                                   ),
@@ -408,7 +384,50 @@ class ChatMessagesArea extends StatelessWidget {
                     ],
                   ),
                 )
-              : Container()
+              : Container(),
+          reply != null
+              ? Container(
+                  margin: EdgeInsets.symmetric(vertical: 8.0),
+                  child: Row(
+                    children: <Widget>[
+                      new Container(
+                        margin: const EdgeInsets.only(right: 8.0),
+                        child: new CircleAvatar(
+                            backgroundColor: Theme.of(context).primaryColor,
+                            child: Icon(
+                              Icons.person,
+                              color: Theme.of(context).textTheme.title.color,
+                            )),
+                      ),
+                      Expanded(
+                        child: new Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            new Container(
+                              margin: const EdgeInsets.only(right: 12.0),
+                              child: Container(
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: 12.0, vertical: 12.0),
+                                decoration: BoxDecoration(
+                                    color: Color.fromRGBO(60, 179, 113, 1),
+                                    borderRadius: BorderRadius.circular(50.0)),
+                                child: new Text(
+                                  reply,
+                                  style: TextStyle(
+                                    fontSize: 16.0,
+                                    color:
+                                        Theme.of(context).textTheme.title.color,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              : Container(),
         ],
       ),
     );

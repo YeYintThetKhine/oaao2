@@ -32,12 +32,16 @@ Future<List<Reminder>> reminderData() async {
 }
 
 class HomeScreen extends StatefulWidget {
+  final String language;
+  HomeScreen({this.language});
   @override
-  _HomeScreenState createState() => _HomeScreenState();
+  _HomeScreenState createState() => _HomeScreenState(setLan: language);
 }
 
 class _HomeScreenState extends State<HomeScreen>
     with SingleTickerProviderStateMixin {
+  final String setLan;
+  _HomeScreenState({this.setLan});
   Animation animation, logoAnimation, menuAnimation;
   AnimationController animationController;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
@@ -112,6 +116,15 @@ class _HomeScreenState extends State<HomeScreen>
         parent: animationController, curve: Curves.fastOutSlowIn));
     animationController.forward();
     super.initState();
+    if (setLan == 'mm') {
+      setState(() {
+        _languageChg("Myanmar");
+      });
+    } else {
+      setState(() {
+        _languageChg("English");
+      });
+    }
     _fetchReminder();
     _getNews();
   }
@@ -425,7 +438,9 @@ class _HomeScreenState extends State<HomeScreen>
                                         Navigator.push(
                                             context,
                                             SlideRightAnimation(
-                                                widget: ReminderList()));
+                                                widget: ReminderList(
+                                              language: language,
+                                            )));
                                       },
                                       child: Column(
                                         children: <Widget>[

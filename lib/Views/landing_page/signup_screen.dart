@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'login_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../../Auth/auth.dart';
 
 class SignUpScreen extends StatefulWidget {
   final String language;
@@ -41,16 +39,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
         Navigator.of(context).pushNamed('/LoginScreen');
       } catch (e) {}
     }
-  }
-
-  void _routeToLogin() {
-    Navigator.push(
-        context,
-        MaterialPageRoute(
-            builder: (BuildContext context) => LoginScreen(
-                  language: language,
-                  authFunction: Authentic(),
-                )));
   }
 
   @override
@@ -190,37 +178,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                                 ),
                                               ),
                                       ),
-                                      Container(
-                                          margin: EdgeInsets.only(top: 8.0),
-                                          child: Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.center,
-                                            children: <Widget>[
-                                              Text(
-                                                'Already have an account?',
-                                                style: TextStyle(
-                                                    color: Theme.of(context)
-                                                        .primaryColor),
-                                              ),
-                                              Container(
-                                                child: FlatButton(
-                                                  highlightColor:
-                                                      Colors.transparent,
-                                                  splashColor: Color.fromRGBO(
-                                                      0, 0, 0, 0.05),
-                                                  padding: EdgeInsets.all(0.0),
-                                                  onPressed: _routeToLogin,
-                                                  child: Text(
-                                                    "Login",
-                                                    style: TextStyle(
-                                                        fontSize: 14.0,
-                                                        color: Theme.of(context)
-                                                            .primaryColor),
-                                                  ),
-                                                ),
-                                              )
-                                            ],
-                                          )),
                                     ],
                                   )),
                             ),

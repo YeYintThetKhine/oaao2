@@ -6,6 +6,7 @@ import 'dart:async';
 import '../../Models/notification/reminder.dart';
 import 'package:intl/intl.dart';
 import 'reminder_edit.dart';
+import '../../Views/landing_page/home_screen.dart';
 
 class ReminderSetting {
   static const String edit = 'Edit';
@@ -21,8 +22,10 @@ Future<List<Reminder>> reminderData() async {
 }
 
 class ReminderList extends StatefulWidget {
+  final String language;
+  ReminderList({this.language});
   @override
-  _ReminderListState createState() => _ReminderListState();
+  _ReminderListState createState() => _ReminderListState(language: language);
 }
 
 abstract class ListItem {}
@@ -45,16 +48,21 @@ class MessageItem implements ListItem {
 }
 
 class _ReminderListState extends State<ReminderList> {
+  final String language;
+  _ReminderListState({this.language});
   List<ListItem> items = [];
   List<String> dateList = [];
   List<String> timeList = [];
   List<DateTime> intDate = [];
   Future<List<Reminder>> remind;
+  var appTitle = 'Reminder List';
+  var noReminder = 'No Reminder';
   final dateFormat = DateFormat("yyyy-MM-dd H:mm");
 
   @override
   void initState() {
     super.initState();
+    _changeLanguage(language);
     remind = reminderData();
     remind.then((data) {
       for (var i = 0; i < data.length; i++) {
@@ -80,6 +88,15 @@ class _ReminderListState extends State<ReminderList> {
         }
       }
     });
+  }
+
+  _changeLanguage(String lan) {
+    if (lan == 'mm') {
+      setState(() {
+        appTitle = "သတိပေးချက်များ";
+        noReminder = 'သတိပေးချက်များမရှိပါ';
+      });
+    }
   }
 
   _sortnSplit() {
@@ -227,12 +244,17 @@ class _ReminderListState extends State<ReminderList> {
                   leading: IconButton(
                     icon: Icon(Icons.arrow_back),
                     onPressed: () {
-                      Navigator.popAndPushNamed(context, '/HomeScreen');
+                      Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => HomeScreen(
+                                    language: language,
+                                  )));
                     },
                   ),
                   iconTheme: Theme.of(context).iconTheme,
                   title: Text(
-                    "Reminder List",
+                    appTitle,
                     style: TextStyle(
                         color: Theme.of(context).textTheme.title.color),
                   ),
@@ -391,7 +413,7 @@ class _ReminderListState extends State<ReminderList> {
                       } else {
                         return Center(
                             child: new Text(
-                          "No Reminder",
+                          noReminder,
                           style: TextStyle(fontSize: 18.0),
                         ));
                       }

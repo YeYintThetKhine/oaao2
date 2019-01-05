@@ -229,7 +229,10 @@ class DetailsState extends State<HospitalDetail> {
         builder: (BuildContext context) {
           return new Container(
             child: AlertDialog(
-              title: Text('Choose a number'),
+              title: Text(
+                'Choose a number',
+                style: TextStyle(color: Color(0xFF666666)),
+              ),
               content: SingleChildScrollView(
                   child: ListBody(
                 children: <Widget>[showPhNums()],
@@ -476,8 +479,7 @@ class DetailsState extends State<HospitalDetail> {
                       indent: 65.0,
                     ),
                     ListTile(
-                      leading: ImageIcon(
-                          new AssetImage("assets/images/web.png"),
+                      leading: ImageIcon(new AssetImage("assets/icons/web.png"),
                           color: Color(0xFF72BB53)),
                       title: Text(details.website),
                       subtitle: Text(site,
@@ -493,7 +495,7 @@ class DetailsState extends State<HospitalDetail> {
                       indent: 65.0,
                     ),
                     ListTile(
-                      leading: ImageIcon(new AssetImage("assets/images/fb.png"),
+                      leading: ImageIcon(new AssetImage("assets/icons/fb.png"),
                           color: Color(0xFF72BB53)),
                       title: Text(details.facebook),
                       subtitle:

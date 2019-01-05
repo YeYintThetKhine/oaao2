@@ -70,6 +70,7 @@ class _HospitalState extends State<Hospital>
   @override
   void initState() {
     super.initState();
+    print(language);
     animationController = AnimationController(
         vsync: this, duration: Duration(milliseconds: 1200));
     animation = Tween(begin: -1.0, end: 0.0).animate(CurvedAnimation(
@@ -77,7 +78,7 @@ class _HospitalState extends State<Hospital>
     animationController.forward();
 
     loading = true;
-    if (language == "Myanmar") {
+    if (language == "mm") {
       lan = "mm";
       title = "ဆေးရုံအမျိုးအစား";
     } else {

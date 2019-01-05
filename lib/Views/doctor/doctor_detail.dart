@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
 import '../../Models/doctor/doctor.dart';
 import '../../Models/doctor/doc_residing_clinic.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class DocDetail extends StatefulWidget {
   final Doctor doctor;
@@ -396,25 +397,23 @@ class _DocDetailState extends State<DocDetail> {
                                                                       ),
                                                                       onPressed:
                                                                           () {
-                                                                        // var appointPh =
-                                                                        //     schedules[
-                                                                        //             i]
-                                                                        //         .phone;
-                                                                        // if (appointPh ==
-                                                                        //     'Nil') {
-                                                                        //   final snackBar =
-                                                                        //       SnackBar(
-                                                                        //     content: Text(
-                                                                        //         'Unavailable!'),
-                                                                        //   );
-                                                                        //   Scaffold.of(
-                                                                        //           context)
-                                                                        //       .showSnackBar(
-                                                                        //           snackBar);
-                                                                        // } else {
-                                                                        //   launch(
-                                                                        //       'tel:$appointPh');
-                                                                        // }
+                                                                        var appointPh =
+                                                                            schedules[i].phone;
+                                                                        if (appointPh ==
+                                                                                null ||
+                                                                            appointPh ==
+                                                                                'Nil') {
+                                                                          final snackBar =
+                                                                              SnackBar(
+                                                                            content:
+                                                                                Text('Unavailable!'),
+                                                                          );
+                                                                          Scaffold.of(context)
+                                                                              .showSnackBar(snackBar);
+                                                                        } else {
+                                                                          launch(
+                                                                              'tel:$appointPh');
+                                                                        }
                                                                       }),
                                                                 ],
                                                               ),

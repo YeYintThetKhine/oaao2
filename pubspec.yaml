@@ -73,6 +73,8 @@ flutter:
    - assets/icons/emergency_procedure.png
    - assets/icons/life_style.png
    - assets/icons/doctor.png
+   - assets/icons/fb.png
+   - assets/icons/web.png
    #doc-Icons
    - assets/icons/doc_edu.png
 

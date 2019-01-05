@@ -31,13 +31,23 @@ class _DoctorTypeListState extends State<DoctorTypeList>
   var _conStatus = "Unknown";
   Connectivity connectivity;
   var subscription;
+  var noData = 'Not Available';
 
   @override
   void initState() {
     super.initState();
+    _setLanguage(language);
     animationController =
-        AnimationController(vsync: this, duration: Duration(milliseconds: 300));
+        AnimationController(vsync: this, duration: Duration(milliseconds: 100));
     _checkCon();
+  }
+
+  _setLanguage(String lan) {
+    if (lan == 'mm') {
+      setState(() {
+        noData = 'မရှိပါ';
+      });
+    }
   }
 
   _checkCon() {
@@ -175,7 +185,7 @@ class _DoctorTypeListState extends State<DoctorTypeList>
                             ? Container(
                                 child: Center(
                                   child: Text(
-                                    "Not Available!",
+                                    noData,
                                     style: TextStyle(
                                         color: Color(0xFF666666),
                                         fontSize: 20.0),
