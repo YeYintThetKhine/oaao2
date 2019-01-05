@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:connectivity/connectivity.dart';
 
 class SignUpScreen extends StatefulWidget {
   final String language;
@@ -11,33 +12,86 @@ class SignUpScreen extends StatefulWidget {
 class _SignUpScreenState extends State<SignUpScreen> {
   final String language;
   _SignUpScreenState({this.language});
+  GlobalKey<ScaffoldState> _scaffold = GlobalKey<ScaffoldState>();
   var _loading = false;
   final signUpFormKey = GlobalKey<FormState>();
   final email = TextEditingController();
   final password = TextEditingController();
+  var _connection;
+  var _conStatus = "Unknown";
+  Connectivity connectivity;
+  var subscription;
 
   @override
   void initState() {
     super.initState();
+    _checkCon();
+  }
+
+  _checkCon() {
+    connectivity = new Connectivity();
+    subscription =
+        connectivity.onConnectivityChanged.listen((ConnectivityResult result) {
+      if (result == ConnectivityResult.mobile ||
+          result == ConnectivityResult.wifi) {
+        setState(() {
+          _connection = true;
+        });
+      } else {
+        setState(() {
+          _connection = false;
+          _conStatus = "No Internet Connection!";
+        });
+      }
+    });
   }
 
   _signUp() async {
     if (signUpFormKey.currentState.validate()) {
-      setState(() {
-        _loading = true;
-      });
-      try {
-        await FirebaseAuth.instance
-            .createUserWithEmailAndPassword(
-                email: email.text, password: password.text)
-            .then((account) {
-          account.sendEmailVerification();
-        });
+      if (_connection == false) {
+        final snackBar = SnackBar(
+          backgroundColor: Color(0xFFFFFFFF),
+          content: Text(
+            _conStatus,
+            style: TextStyle(fontSize: 16.0, color: Color(0xFF666666)),
+          ),
+          duration: Duration(seconds: 1),
+        );
+        _scaffold.currentState.showSnackBar(snackBar);
+      } else {
         setState(() {
-          _loading = false;
+          _loading = true;
         });
-        Navigator.of(context).pushNamed('/LoginScreen');
-      } catch (e) {}
+        try {
+          await FirebaseAuth.instance
+              .createUserWithEmailAndPassword(
+                  email: email.text, password: password.text)
+              .then((account) {
+            account.sendEmailVerification();
+          });
+          setState(() {
+            _loading = false;
+          });
+          Navigator.of(context).pushNamed('/LoginScreen');
+        } catch (e) {
+          print(e.toString().substring(29, e.toString().lastIndexOf(",")));
+          setState(() {
+            _loading = false;
+          });
+          final snackBar = SnackBar(
+            backgroundColor: Color(0xFFFFFFFF),
+            content: Text(
+              e.toString().substring(29, e.toString().lastIndexOf(",")) ==
+                      "The email address is already in use by another account."
+                  ? "Email is already signed up."
+                  : "Something Wrong.",
+              style: TextStyle(fontSize: 16.0, color: Color(0xFF666666)),
+            ),
+            duration: Duration(seconds: 1),
+          );
+          _scaffold.currentState.showSnackBar(snackBar);
+        }
+      }
     }
   }
 
@@ -47,6 +101,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     return OrientationBuilder(
       builder: (context, orientation) {
         return Scaffold(
+          key: _scaffold,
           body: CustomScrollView(slivers: <Widget>[
             SliverAppBar(
               iconTheme: Theme.of(context).iconTheme,

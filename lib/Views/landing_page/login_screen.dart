@@ -3,6 +3,7 @@ import '../../Views/landing_page/home_screen.dart';
 import '../../Auth/auth.dart';
 import '../../Views/landing_page/signup_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:connectivity/connectivity.dart';
 
 class LoginScreen extends StatefulWidget {
   final String language;
@@ -22,53 +23,88 @@ class _LoginScreenState extends State<LoginScreen> {
   final password = TextEditingController();
   final resetEmail = TextEditingController();
   var _loading = false;
+  var _connection;
+  var _conStatus = "Unknown";
+  Connectivity connectivity;
+  var subscription;
 
   @override
     void initState() {
       super.initState();
+    _checkCon();
+    }
+
+    _checkCon() {
+      connectivity = new Connectivity();
+      subscription =
+          connectivity.onConnectivityChanged.listen((ConnectivityResult result) {
+        if (result == ConnectivityResult.mobile ||
+            result == ConnectivityResult.wifi) {
+          setState(() {
+            _connection = true;
+          });
+        } else {
+          setState(() {
+            _connection = false;
+            _conStatus = "No Internet Connection!";
+          });
+        }
+      });
     }
 
     _accLogin() async {
       if(loginFormKey.currentState.validate()){
-        setState(() {
-          _loading = true;
-        });
-        try {
-        String userId = await widget.authFunction.login(email.text, password.text);
-        if(userId == "Email is not verified yet"){
-          setState(() {
-            _loading = false;
-          });
-          final snackBar = SnackBar(
-            backgroundColor: Theme.of(context).primaryColor,
-            content: Text(
-              "Email is not verified! Please verify your email.",
-              style: TextStyle(fontSize: 16.0),
-            ),
-            duration: Duration(seconds: 1),
-          );
-          _scaffold.currentState.showSnackBar(snackBar);
+        if(_connection == false){
+        final snackBar = SnackBar(
+          backgroundColor: Theme.of(context).primaryColor,
+          content: Text(
+            _conStatus,
+            style: TextStyle(fontSize: 16.0),
+          ),
+          duration: Duration(seconds: 1),
+        );
+        _scaffold.currentState.showSnackBar(snackBar);
         }
         else{
           setState(() {
-            _loading = false;
-            Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (BuildContext context) => HomeScreen()));
+            _loading = true;
           });
-        }
-        } catch (e) {
-          print(e);
-          setState(() {
-            _loading = false;
-          });
-          final snackBar = SnackBar(
-            backgroundColor: Theme.of(context).primaryColor,
-            content: Text(
-              "Incorrect email address and password!",
-              style: TextStyle(fontSize: 16.0),
-            ),
-            duration: Duration(seconds: 1),
-          );
-          _scaffold.currentState.showSnackBar(snackBar);
+          try {
+          String userId = await widget.authFunction.login(email.text, password.text);
+          if(userId == "Email is not verified yet"){
+            setState(() {
+              _loading = false;
+            });
+            final snackBar = SnackBar(
+              backgroundColor: Theme.of(context).primaryColor,
+              content: Text(
+                "Email is not verified! Please verify your email.",
+                style: TextStyle(fontSize: 16.0),
+              ),
+              duration: Duration(seconds: 1),
+            );
+            _scaffold.currentState.showSnackBar(snackBar);
+          }
+          else{
+            setState(() {
+              _loading = false;
+              Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (BuildContext context) => HomeScreen()));
+            });
+          }
+          } catch (e) {
+            setState(() {
+              _loading = false;
+            });
+            final snackBar = SnackBar(
+              backgroundColor: Theme.of(context).primaryColor,
+              content: Text(
+                "Incorrect email address and password!",
+                style: TextStyle(fontSize: 16.0),
+              ),
+              duration: Duration(seconds: 1),
+            );
+            _scaffold.currentState.showSnackBar(snackBar);
+          }
         }
       }
     }
@@ -85,6 +121,18 @@ class _LoginScreenState extends State<LoginScreen> {
 
   _resetEmail() {
     if(resetFormKey.currentState.validate()){
+      if(_connection == false){
+      final snackBar = SnackBar(
+        backgroundColor: Theme.of(context).primaryColor,
+        content: Text(
+          _conStatus,
+          style: TextStyle(fontSize: 16.0),
+        ),
+        duration: Duration(seconds: 1),
+      );
+      _scaffold.currentState.showSnackBar(snackBar);
+      }
+      else{
       FirebaseAuth.instance.sendPasswordResetEmail(email: resetEmail.text);
       Navigator.pop(context);
       final snackBar = SnackBar(
@@ -96,6 +144,7 @@ class _LoginScreenState extends State<LoginScreen> {
         duration: Duration(seconds: 1),
       );
       _scaffold.currentState.showSnackBar(snackBar);
+      }
     }
   }
 
