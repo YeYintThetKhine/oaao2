@@ -172,7 +172,8 @@ class _DocListState extends State<DocList> {
                                     docList[i].docName,
                                     style: TextStyle(
                                         fontWeight: FontWeight.bold,
-                                        fontSize: 20.0,
+                                        fontSize:
+                                            language == 'en' ? 20.0 : 16.0,
                                         color: Theme.of(context).primaryColor),
                                   ),
                                 ),
@@ -190,7 +191,8 @@ class _DocListState extends State<DocList> {
                                       docList[i].docEdu,
                                       overflow: TextOverflow.clip,
                                       style: TextStyle(
-                                          fontSize: 15.0,
+                                          fontSize:
+                                              language == 'en' ? 15.0 : 13.0,
                                           color:
                                               Theme.of(context).primaryColor),
                                     ),

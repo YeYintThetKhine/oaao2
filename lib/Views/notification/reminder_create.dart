@@ -7,13 +7,19 @@ import '../../Models/notification/reminder.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'dart:typed_data';
 import 'dart:ui';
+import '../../Views/notification/reminder.dart';
 
 class ReminderCreate extends StatefulWidget {
+  final String language;
+  ReminderCreate({this.language});
   @override
-  _ReminderCreateState createState() => _ReminderCreateState();
+  _ReminderCreateState createState() =>
+      _ReminderCreateState(language: language);
 }
 
 class _ReminderCreateState extends State<ReminderCreate> {
+  final String language;
+  _ReminderCreateState({this.language});
   var flutterLocalNotificationsPlugin = new FlutterLocalNotificationsPlugin();
   final reminderFormKey = GlobalKey<FormState>();
   final dateFormat = DateFormat("MMMM d, yyyy");
@@ -25,10 +31,13 @@ class _ReminderCreateState extends State<ReminderCreate> {
   DateTime date;
   TimeOfDay time;
   var reminderValue = '';
+  var appTitle = 'Create Reminder';
 
   @override
   initState() {
     super.initState();
+    print(language);
+    _setLanguage(language);
     var initializationSettingsAndroid =
         new AndroidInitializationSettings('launcher_icon');
     var initializationSettingsIOS = new IOSInitializationSettings();
@@ -36,6 +45,14 @@ class _ReminderCreateState extends State<ReminderCreate> {
         initializationSettingsAndroid, initializationSettingsIOS);
     flutterLocalNotificationsPlugin.initialize(initializationSettings,
         onSelectNotification: onSelectNotification);
+  }
+
+  _setLanguage(String lan) {
+    if (lan == 'mm') {
+      setState(() {
+        appTitle = 'သတိပေးပြုလုပ်ရန်';
+      });
+    }
   }
 
   Future onSelectNotification(String payload) async {
@@ -106,7 +123,12 @@ class _ReminderCreateState extends State<ReminderCreate> {
         setState(() {
           reminderValue = '';
           _alert(alretString, reminder.remindAction, reminder.remindNote);
-          Navigator.popAndPushNamed(context, '/ReminderList');
+          Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => ReminderList(
+                        language: language,
+                      )));
         });
         return true;
       }
@@ -126,12 +148,17 @@ class _ReminderCreateState extends State<ReminderCreate> {
             leading: IconButton(
               icon: Icon(Icons.arrow_back),
               onPressed: () {
-                Navigator.popAndPushNamed(context, '/ReminderList');
+                Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => ReminderList(
+                              language: language,
+                            )));
               },
             ),
             backgroundColor: Theme.of(context).primaryColor,
             title: Text(
-              "Create Reminder",
+              appTitle,
               style: TextStyle(color: Theme.of(context).textTheme.title.color),
             ),
             iconTheme: Theme.of(context).iconTheme,

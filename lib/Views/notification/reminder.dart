@@ -8,9 +8,16 @@ import 'package:intl/intl.dart';
 import 'reminder_edit.dart';
 import '../../Views/landing_page/home_screen.dart';
 
-class ReminderSetting {
+class ReminderSettingEN {
   static const String edit = 'Edit';
   static const String delete = 'Delete';
+
+  static const List<String> options = <String>[edit, delete];
+}
+
+class ReminderSettingMM {
+  static const String edit = 'ပြုပြင်မည်';
+  static const String delete = 'ဖျက်သိမ်းမည်';
 
   static const List<String> options = <String>[edit, delete];
 }
@@ -57,6 +64,10 @@ class _ReminderListState extends State<ReminderList> {
   Future<List<Reminder>> remind;
   var appTitle = 'Reminder List';
   var noReminder = 'No Reminder';
+  var delBoxTitle = 'Delete Reminder';
+  var delBoxText = 'Are you sure you want to delete?';
+  var delBoxYes = 'Yes';
+  var delBoxNo = 'No';
   final dateFormat = DateFormat("yyyy-MM-dd H:mm");
 
   @override
@@ -95,6 +106,10 @@ class _ReminderListState extends State<ReminderList> {
       setState(() {
         appTitle = "သတိပေးချက်များ";
         noReminder = 'သတိပေးချက်များမရှိပါ';
+        delBoxTitle = 'သတိပေးဖျက်ရန်';
+        delBoxText = 'သတိပေးဖျက်ရန်သေချာပါသလား?';
+        delBoxYes = 'လုပ်ဆောင်မည်';
+        delBoxNo = 'မလုပ်ဆောင်ပါ';
       });
     }
   }
@@ -178,7 +193,7 @@ class _ReminderListState extends State<ReminderList> {
         remindType: reminder.type,
         remindAction: reminder.action,
         remindNote: reminder.note);
-    if (value == "Delete") {
+    if (value == "Delete" || value == "ဖျက်သိမ်းမည်") {
       showDialog(
           context: context,
           builder: (BuildContext context) {
@@ -186,11 +201,11 @@ class _ReminderListState extends State<ReminderList> {
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10.0)),
               title: Text(
-                "Delete Reminder",
+                delBoxTitle,
                 style: TextStyle(color: Theme.of(context).primaryColor),
               ),
               content: Text(
-                "Are you sure you want to delete?",
+                delBoxText,
                 style: TextStyle(
                     color: Theme.of(context).primaryColor, fontSize: 18.0),
               ),
@@ -205,7 +220,7 @@ class _ReminderListState extends State<ReminderList> {
                     Navigator.popAndPushNamed(context, "/ReminderList");
                   },
                   child: Text(
-                    "Yes",
+                    delBoxYes,
                     style: TextStyle(
                         color: Theme.of(context).primaryColor, fontSize: 18.0),
                   ),
@@ -215,7 +230,7 @@ class _ReminderListState extends State<ReminderList> {
                     Navigator.of(context).pop();
                   },
                   child: Text(
-                    "No",
+                    delBoxNo,
                     style: TextStyle(
                         color: Theme.of(context).primaryColor, fontSize: 18.0),
                   ),
@@ -227,7 +242,10 @@ class _ReminderListState extends State<ReminderList> {
       Navigator.push(
           context,
           MaterialPageRoute(
-              builder: (context) => ReminderEdit(reminder: remindermodel)));
+              builder: (context) => ReminderEdit(
+                    reminder: remindermodel,
+                    language: language,
+                  )));
     }
   }
 
@@ -392,13 +410,23 @@ class _ReminderListState extends State<ReminderList> {
                                                     .primaryColor),
                                             itemBuilder:
                                                 (BuildContext context) {
-                                              return ReminderSetting.options
-                                                  .map((String option) {
-                                                return PopupMenuItem<String>(
-                                                  value: option,
-                                                  child: Text(option),
-                                                );
-                                              }).toList();
+                                              if (language == 'en') {
+                                                return ReminderSettingEN.options
+                                                    .map((String option) {
+                                                  return PopupMenuItem<String>(
+                                                    value: option,
+                                                    child: Text(option),
+                                                  );
+                                                }).toList();
+                                              } else {
+                                                return ReminderSettingMM.options
+                                                    .map((String option) {
+                                                  return PopupMenuItem<String>(
+                                                    value: option,
+                                                    child: Text(option),
+                                                  );
+                                                }).toList();
+                                              }
                                             },
                                           ),
                                         )
@@ -421,7 +449,11 @@ class _ReminderListState extends State<ReminderList> {
                 floatingActionButton: FloatingActionButton(
                   onPressed: () {
                     Navigator.push(
-                        context, SlideRightAnimation(widget: ReminderCreate()));
+                        context,
+                        SlideRightAnimation(
+                            widget: ReminderCreate(
+                          language: language,
+                        )));
                   },
                   backgroundColor: Theme.of(context).primaryColor,
                   child: Icon(Icons.add),

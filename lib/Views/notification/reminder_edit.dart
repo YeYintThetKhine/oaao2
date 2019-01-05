@@ -7,17 +7,21 @@ import '../../Models/notification/reminder.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'dart:typed_data';
 import 'dart:ui';
+import '../../Views/notification/reminder.dart';
 
 class ReminderEdit extends StatefulWidget {
   final Reminder reminder;
-  ReminderEdit({this.reminder});
+  final String language;
+  ReminderEdit({this.reminder, this.language});
   @override
-  _ReminderEditState createState() => _ReminderEditState(reminder: reminder);
+  _ReminderEditState createState() =>
+      _ReminderEditState(reminder: reminder, language: language);
 }
 
 class _ReminderEditState extends State<ReminderEdit> {
   final Reminder reminder;
-  _ReminderEditState({this.reminder});
+  final String language;
+  _ReminderEditState({this.reminder, this.language});
   var flutterLocalNotificationsPlugin = new FlutterLocalNotificationsPlugin();
   final reminderFormKey = GlobalKey<FormState>();
   final dateFormat = DateFormat("MMMM d, yyyy");
@@ -30,10 +34,12 @@ class _ReminderEditState extends State<ReminderEdit> {
   DateTime date;
   TimeOfDay time;
   var reminderValue = '';
+  var appTitle = 'Edit Reminder';
 
   @override
   initState() {
     super.initState();
+    _setLanguage(language);
     hourMin = reminder.remindTime.split(":");
     reminderValue = reminder.remindType;
     actionController.text = reminder.remindAction;
@@ -48,6 +54,14 @@ class _ReminderEditState extends State<ReminderEdit> {
         initializationSettingsAndroid, initializationSettingsIOS);
     flutterLocalNotificationsPlugin.initialize(initializationSettings,
         onSelectNotification: onSelectNotification);
+  }
+
+  _setLanguage(String lan) {
+    if (lan == 'mm') {
+      setState(() {
+        appTitle = "သတိပေးပြုပြင်ရန်";
+      });
+    }
   }
 
   Future onSelectNotification(String payload) async {
@@ -102,7 +116,12 @@ class _ReminderEditState extends State<ReminderEdit> {
         dbhelper.updateReminder(reminder);
         setState(() {
           _alert(alretString, reminder.remindAction, reminder.remindNote);
-          Navigator.popAndPushNamed(context, '/ReminderList');
+          Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => ReminderList(
+                        language: language,
+                      )));
         });
       }
     }
@@ -119,12 +138,17 @@ class _ReminderEditState extends State<ReminderEdit> {
             leading: IconButton(
               icon: Icon(Icons.arrow_back),
               onPressed: () {
-                Navigator.pushNamed(context, '/ReminderList');
+                Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => ReminderList(
+                              language: language,
+                            )));
               },
             ),
             backgroundColor: Theme.of(context).primaryColor,
             title: Text(
-              "Create Reminder",
+              appTitle,
               style: TextStyle(color: Theme.of(context).textTheme.title.color),
             ),
             iconTheme: Theme.of(context).iconTheme,

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../Views/landing_page/home_screen.dart';
 import '../../Auth/auth.dart';
 import '../../Views/landing_page/signup_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class LoginScreen extends StatefulWidget {
   final String language;
@@ -16,8 +17,10 @@ class _LoginScreenState extends State<LoginScreen> {
   _LoginScreenState({this.language});
   GlobalKey<ScaffoldState> _scaffold = GlobalKey<ScaffoldState>();
   final loginFormKey = GlobalKey<FormState>();
+  final resetFormKey = GlobalKey<FormState>();
   final email = TextEditingController();
   final password = TextEditingController();
+  final resetEmail = TextEditingController();
   var _loading = false;
 
   @override
@@ -78,6 +81,62 @@ class _LoginScreenState extends State<LoginScreen> {
             builder: (BuildContext context) => SignUpScreen(
                   language: language,
                 )));
+  }
+
+  _resetEmail() {
+    if(resetFormKey.currentState.validate()){
+      FirebaseAuth.instance.sendPasswordResetEmail(email: resetEmail.text);
+      Navigator.pop(context);
+      final snackBar = SnackBar(
+        backgroundColor: Theme.of(context).primaryColor,
+        content: Text(
+          "Please check your email!",
+          style: TextStyle(fontSize: 16.0),
+        ),
+        duration: Duration(seconds: 1),
+      );
+      _scaffold.currentState.showSnackBar(snackBar);
+    }
+  }
+
+  _showForgotDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) { 
+        return Form(
+          key: resetFormKey,
+          child: AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10.0)
+            ),
+          title: Text("Reset Password", style: TextStyle(color: Color(0xFF666666)),),
+          content: TextFormField(
+            controller: resetEmail,
+            validator: (value) => resetEmail.text.length <= 0 
+            ? "Please Enter Email Address!" : !resetEmail.text.contains("@") 
+            ? "Enter Valid Email Address." : null,
+            keyboardType: TextInputType.emailAddress,
+            decoration: InputDecoration(
+              contentPadding: EdgeInsets.symmetric(
+                vertical: 12.0, horizontal: 0.0),
+              labelText: "Email",
+              border: UnderlineInputBorder(
+              )
+            ),
+          ),
+          actions: <Widget>[
+            FlatButton(
+              onPressed: _resetEmail,
+              child: Text("Reset", style: TextStyle(color: Color(0xFF666666)),),
+            ),
+            FlatButton(
+              onPressed: () {Navigator.of(context).pop();},
+              child: Text("Cancel", style: TextStyle(color: Color(0xFF666666)),),
+            )
+          ],
+      ),
+        );}
+    );
   }
 
   @override
@@ -270,6 +329,11 @@ class _LoginScreenState extends State<LoginScreen> {
                                         ],
                                       ),
                                     ),
+                                    FlatButton(
+                                      highlightColor: Colors.transparent,
+                                      onPressed: _showForgotDialog,
+                                      child: Text("Forgot Password ?", style: TextStyle(color: Theme.of(context).textTheme.title.color),),
+                                    )
                                 ],
                               )),
                             ),
