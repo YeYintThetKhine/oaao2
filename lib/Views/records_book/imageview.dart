@@ -1,28 +1,53 @@
 import 'package:flutter/material.dart';
 import 'package:photo_view/photo_view.dart';
-import 'dart:typed_data' show Uint8List;
 
-class ImageView extends StatefulWidget {
-  final Uint8List img;
-  ImageView({@required this.img});
-  _ImageViewState createState() => _ImageViewState(img: img);
+class ShowImages extends StatefulWidget {
+  final i;
+  final imgdata;
+
+  ShowImages({this.i, @required this.imgdata});
+  _ShowImagesState createState() => _ShowImagesState(i: i, imgdata: imgdata);
 }
 
-class _ImageViewState extends State<ImageView> {
-  Uint8List img;
-  _ImageViewState({@required this.img});
+class _ShowImagesState extends State<ShowImages> {
+  var i;
+  var imgdata;
+
+  _ShowImagesState({this.i, @required this.imgdata});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-      ),
-      body:PhotoView(
-        backgroundColor: Colors.white,
-        loadingChild: CircularProgressIndicator(),   
-        minScale: 0.5,
-        maxScale: 4.0,     
-              imageProvider: MemoryImage(img)
-            )
+        body: Stack(
+      children: <Widget>[
+        PhotoView(
+          minScale: 0.4,
+          maxScale: 5.0,
+          imageProvider: MemoryImage(imgdata),
+        ),
+        InkWell(
+          child: Container(
+            padding: EdgeInsets.only(left: 14.0, top: 32.0),
+            child: CircleAvatar(
+              radius: 24.0,
+              backgroundColor: Colors.white,
+              child: Icon(Icons.arrow_back),
+            ),
+          ),
+          onTap: () {
+            Navigator.pop(context);
+          },
+        )
+      ],
+    ));
+  }
+}
+
+class CustomAppBar extends State<AppBar> {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 150,
     );
   }
 }

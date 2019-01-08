@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 import '../../Database/database.dart';
 import '../../Models/records_book/record_book.dart';
+import '../../Views/records_book/medrecords.dart';
 import '../../Views/landing_page/login_screen.dart';
-// import '../../Views/records_book/medrecords.dart';
 import '../../Auth/auth.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -34,6 +34,7 @@ class SettingData {
 }
 
 class ProfileScreenState extends State<ProfileScreen> {
+  DBHelper db = DBHelper();
   var loading = true;
   AuthStatus authStatus = AuthStatus.notSignedIn;
   Future<List<User>> fetchusersFromDatabase() async {
@@ -51,18 +52,34 @@ class ProfileScreenState extends State<ProfileScreen> {
   var formKey2 = GlobalKey<FormState>();
   var name;
   var editname;
+  int count;
 
-  bool _submit() {
+  _submit() async {
     if (this.formKey.currentState.validate()) {
       formKey.currentState.save();
-      var dbhelper = DBHelper();
       var user = User();
       user.name = name;
-      dbhelper.addUser(user);
-      print("User added");
+      await db.addUser(user).catchError((onError) {
+        Navigator.pop(context);
+        showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+                  content: Text('More than 5 profiles is not allowed'),
+                  actions: <Widget>[
+                    FlatButton(
+                      child: Text('Close'),
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                    )
+                  ],
+                ));
+      });
+      setState(() {
+        print("User added");
+      });
+
       return true;
-    } else {
-      return false;
     }
   }
 
@@ -220,303 +237,194 @@ class ProfileScreenState extends State<ProfileScreen> {
 
   _profileBody() {
     return Container(
-        child: new FutureBuilder<List<User>>(
-      future: fetchusersFromDatabase(),
-      builder: (context, snapshot) {
-        if (snapshot.hasData && snapshot.data.length != 0) {
-          return new ListView.builder(
-              itemCount: snapshot.data.length,
-              itemBuilder: (context, index) {
-                // return new Card(
-                // child: ListTile(
-                //   subtitle: Text(snapshot.data[index].id.toString()),
-                //   title: new Text(snapshot.data[index].name,
-                //       style: new TextStyle(
-                //           fontWeight: FontWeight.bold, fontSize: 18.0)),
-                //   onTap: () {
-                //     Navigator.push(
-                //         context,
-                //         MaterialPageRoute(
-                //             builder: (context) => MedRec(
-                //                   id: snapshot.data[index].id,
-                //                 )));
-                //   },
-                //   trailing: PopupMenuButton<String>(
-                //     itemBuilder: (BuildContext context) {
-                //       return SettingData.languages.map((String func) {
-                //         return PopupMenuItem<String>(
-                //           value: func,
-                //           child: Text(func),
-                //         );
-                //       }).toList();
-                //     },
-                //     onSelected: (String choice) {
-                //       if(choice=="Edit"){
-                //         showDialog(
-                //                     context: context,
-                //                     builder: (BuildContext context) =>
-                //                         Container(
-                //                           child: AlertDialog(
-                //                             title: Row(
-                //                               children: <Widget>[
-                //                                 Icon(Icons.person),
-                //                                 Text(snapshot
-                //                                     .data[index].name),
-                //                               ],
-                //                             ),
-                //                             content: Form(
-                //                               key: formKey2,
-                //                               child: TextFormField(
-                //                                 keyboardType:
-                //                                     TextInputType.text,
-                //                                 decoration: InputDecoration(
-                //                                     labelText:
-                //                                         'Profile Name'),
-                //                                 validator: (val) =>
-                //                                     val.length == 0
-                //                                         ? "Profile name is required"
-                //                                         : null,
-                //                                 autofocus: true,
-                //                                 initialValue: snapshot
-                //                                     .data[index].name,
-                //                                 onSaved: (val) =>
-                //                                     this.editname = val,
-                //                               ),
-                //                             ),
-                //                             actions: <Widget>[
-                //                               FlatButton(
-                //                                 child: Text('CANCEL'),
-                //                                 onPressed: () {
-                //                                   Navigator.pop(context);
-                //                                 },
-                //                               ),
-                //                               FlatButton(
-                //                                 child: Text('EDIT'),
-                //                                  onPressed: () {
-                //                                   setState(() {
-                //                                     _update(snapshot
-                //                                         .data[index].id);
-                //                                   });
-                //                                   Navigator.pop(context);
-                //                                 },
-                //                               )
-                //                             ],
-                //                           ),
-                //                         ));
-                //       }
-                //       else{
-                //         showDialog(
-                //                     context: context,
-                //                     builder: (BuildContext context) =>
-                //                         Container(
-                //                           child: AlertDialog(
-                //                             title: Row(
-                //                               children: <Widget>[
-                //                                 Icon(Icons.person),
-                //                                 Text(snapshot
-                //                                     .data[index].name),
-                //                               ],
-                //                             ),
-                //                             actions: <Widget>[
-                //                               FlatButton(
-                //                                 child: Text('CANCEL'),
-                //                                 onPressed: () {
-                //                                   Navigator.pop(context);
-                //                                 },
-                //                               ),
-                //                               FlatButton(
-                //                                 child: Text('DELETE'),
-                //                                 onPressed: () {
-                //                                   DBHelper dh =
-                //                                       new DBHelper();
-                //                                   setState(() {
-                //                                     dh.deleteUser(snapshot
-                //                                         .data[index].id);
-                //                                   });
-                //                                   Navigator.pop(context);
-                //                                 },
-                //                               )
-                //                             ],
-                //                             content: Text(
-                //                                 'Do you want to delete this profile?'),
-                //                           ),
-                //                         ));
-                //       }
-                //     },
-                //   ),
-                // ),
-                //);
-                return Padding(
-                  padding: EdgeInsets.only(
-                      top: 6.0, bottom: 4.0, left: 12.0, right: 12.0),
-                  child: GestureDetector(
-                    onTap: () {
-                      print('clicked');
-                    },
-                    child: Container(
-                      height: 50,
-                      decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(6.0),
-                          border: Border.all(color: Color(0xFF72BB53))),
-                      child: Stack(
-                        children: <Widget>[
-                          Container(
-                            padding: EdgeInsets.only(left: 16.0),
-                            alignment: Alignment.centerLeft,
-                            child: Text(snapshot.data[index].name,
-                                style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    color: Theme.of(context).primaryColor)),
-                          ),
-                          Container(
-                            alignment: Alignment.centerRight,
-                            child: PopupMenuButton<String>(
-                              icon: Icon(
-                                Icons.more_vert,
-                                color: Color(0xFF72BB53),
-                              ),
-                              itemBuilder: (BuildContext context) {
-                                return SettingData.languages.map((String func) {
-                                  return PopupMenuItem<String>(
-                                    value: func,
-                                    child: Text(func),
-                                  );
-                                }).toList();
-                              },
-                              onSelected: (String choice) {
-                                if (choice == "Edit") {
-                                  showDialog(
-                                      context: context,
-                                      builder: (BuildContext context) =>
-                                          Container(
-                                            child: AlertDialog(
-                                              title: Row(
-                                                children: <Widget>[
-                                                  Icon(
-                                                    Icons.person,
-                                                    color: Theme.of(context)
-                                                        .primaryColor,
-                                                  ),
-                                                  Text(
-                                                    snapshot.data[index].name,
-                                                    style: TextStyle(
-                                                        color: Theme.of(context)
-                                                            .primaryColor),
-                                                  ),
-                                                ],
-                                              ),
-                                              content: Form(
-                                                key: formKey2,
-                                                child: TextFormField(
-                                                  keyboardType:
-                                                      TextInputType.text,
-                                                  decoration: InputDecoration(
-                                                      labelText:
-                                                          'Profile Name'),
-                                                  validator: (val) => val
-                                                              .length ==
-                                                          0
-                                                      ? "Profile name is required"
-                                                      : null,
-                                                  autofocus: true,
-                                                  initialValue:
+      child: new FutureBuilder<List<User>>(
+        future: fetchusersFromDatabase(),
+        builder: (context, snapshot) {
+          if (snapshot.hasData && snapshot.data.length != 0) {
+            return new ListView.builder(
+                itemCount: snapshot.data.length,
+                itemBuilder: (context, index) {
+                  return Padding(
+                    padding: EdgeInsets.only(
+                        top: 6.0, bottom: 4.0, left: 12.0, right: 12.0),
+                    child: GestureDetector(
+                      onTap: () {
+                        Navigator.of(context).push(MaterialPageRoute(
+                            builder: (context) => MedRec(
+                                  id: snapshot.data[index].id,
+                                )));
+                      },
+                      child: Container(
+                        width: 250.0,
+                        height: 80,
+                        decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(6.0),
+                            border: Border.all(color: Color(0xFF72BB53))),
+                        child: Stack(
+                          children: <Widget>[
+                            Container(
+                              padding: EdgeInsets.only(left: 16.0),
+                              alignment: Alignment.centerLeft,
+                              child: Text(snapshot.data[index].name,
+                                  style: TextStyle(
+                                      fontSize: 18.0,
+                                      fontWeight: FontWeight.w500,
+                                      color: Colors.black)),
+                            ),
+                            Container(
+                              alignment: Alignment.centerRight,
+                              child: PopupMenuButton<String>(
+                                icon: Icon(
+                                  Icons.more_vert,
+                                  color: Color(0xFF72BB53),
+                                  size: 30.0,
+                                ),
+                                itemBuilder: (BuildContext context) {
+                                  return SettingData.languages
+                                      .map((String func) {
+                                    return PopupMenuItem<String>(
+                                      value: func,
+                                      child: Text(func),
+                                    );
+                                  }).toList();
+                                },
+                                onSelected: (String choice) {
+                                  if (choice == "Edit") {
+                                    showDialog(
+                                        context: context,
+                                        builder: (BuildContext context) =>
+                                            Container(
+                                              child: AlertDialog(
+                                                title: Row(
+                                                  children: <Widget>[
+                                                    Icon(
+                                                      Icons.person,
+                                                      color: Theme.of(context)
+                                                          .primaryColor,
+                                                    ),
+                                                    Text(
                                                       snapshot.data[index].name,
-                                                  onSaved: (val) =>
-                                                      this.editname = val,
-                                                ),
-                                              ),
-                                              actions: <Widget>[
-                                                FlatButton(
-                                                  splashColor: Color.fromRGBO(
-                                                      114, 187, 83, 0.15),
-                                                  highlightColor:
-                                                      Colors.transparent,
-                                                  child: Text(
-                                                    'CANCEL',
-                                                    style: TextStyle(
-                                                        color: Theme.of(context)
-                                                            .primaryColor),
-                                                  ),
-                                                  onPressed: () {
-                                                    Navigator.pop(context);
-                                                  },
-                                                ),
-                                                FlatButton(
-                                                  splashColor: Color.fromRGBO(
-                                                      114, 187, 83, 0.15),
-                                                  highlightColor:
-                                                      Colors.transparent,
-                                                  child: Text('EDIT',
                                                       style: TextStyle(
                                                           color: Theme.of(
                                                                   context)
-                                                              .primaryColor)),
-                                                  onPressed: () {
-                                                    setState(() {
-                                                      _update(snapshot
-                                                          .data[index].id);
-                                                    });
-                                                    Navigator.pop(context);
-                                                  },
-                                                )
-                                              ],
-                                            ),
-                                          ));
-                                } else {
-                                  showDialog(
-                                      context: context,
-                                      builder: (BuildContext context) =>
-                                          Container(
-                                            child: AlertDialog(
-                                              title: Row(
-                                                children: <Widget>[
-                                                  Icon(Icons.person),
-                                                  Text(snapshot
-                                                      .data[index].name),
+                                                              .primaryColor),
+                                                    ),
+                                                  ],
+                                                ),
+                                                content: Form(
+                                                  key: formKey2,
+                                                  child: TextFormField(
+                                                    keyboardType:
+                                                        TextInputType.text,
+                                                    decoration: InputDecoration(
+                                                        labelText:
+                                                            'Profile Name'),
+                                                    validator: (val) => val
+                                                                .length ==
+                                                            0
+                                                        ? "Profile name is required"
+                                                        : null,
+                                                    autofocus: true,
+                                                    initialValue: snapshot
+                                                        .data[index].name,
+                                                    onSaved: (val) =>
+                                                        this.editname = val,
+                                                  ),
+                                                ),
+                                                actions: <Widget>[
+                                                  FlatButton(
+                                                    splashColor: Color.fromRGBO(
+                                                        114, 187, 83, 0.15),
+                                                    highlightColor:
+                                                        Colors.transparent,
+                                                    child: Text(
+                                                      'CANCEL',
+                                                      style: TextStyle(
+                                                          color: Theme.of(
+                                                                  context)
+                                                              .primaryColor),
+                                                    ),
+                                                    onPressed: () {
+                                                      Navigator.pop(context);
+                                                    },
+                                                  ),
+                                                  FlatButton(
+                                                    splashColor: Color.fromRGBO(
+                                                        114, 187, 83, 0.15),
+                                                    highlightColor:
+                                                        Colors.transparent,
+                                                    child: Text('EDIT',
+                                                        style: TextStyle(
+                                                            color: Theme.of(
+                                                                    context)
+                                                                .primaryColor)),
+                                                    onPressed: () {
+                                                      setState(() {
+                                                        _update(snapshot
+                                                            .data[index].id);
+                                                      });
+                                                      Navigator.pop(context);
+                                                    },
+                                                  )
                                                 ],
                                               ),
-                                              actions: <Widget>[
-                                                FlatButton(
-                                                  child: Text('CANCEL'),
-                                                  onPressed: () {
-                                                    Navigator.pop(context);
-                                                  },
+                                            ));
+                                  } else {
+                                    showDialog(
+                                        context: context,
+                                        builder: (BuildContext context) =>
+                                            Container(
+                                              child: AlertDialog(
+                                                title: Row(
+                                                  children: <Widget>[
+                                                    Icon(Icons.person),
+                                                    Text(snapshot
+                                                        .data[index].name),
+                                                  ],
                                                 ),
-                                                FlatButton(
-                                                  splashColor: Color.fromRGBO(
-                                                      114, 187, 83, 0.15),
-                                                  highlightColor:
-                                                      Colors.transparent,
-                                                  child: Text('DELETE'),
-                                                  onPressed: () {
-                                                    DBHelper dh =
-                                                        new DBHelper();
-                                                    setState(() {
-                                                      dh.deleteUser(snapshot
-                                                          .data[index].id);
-                                                    });
-                                                    Navigator.pop(context);
-                                                  },
-                                                )
-                                              ],
-                                              content: Text(
-                                                  'Do you want to delete this profile?'),
-                                            ),
-                                          ));
-                                }
-                              },
+                                                actions: <Widget>[
+                                                  FlatButton(
+                                                    child: Text('CANCEL'),
+                                                    onPressed: () {
+                                                      Navigator.pop(context);
+                                                    },
+                                                  ),
+                                                  FlatButton(
+                                                    splashColor: Color.fromRGBO(
+                                                        114, 187, 83, 0.15),
+                                                    highlightColor:
+                                                        Colors.transparent,
+                                                    child: Text('DELETE'),
+                                                    onPressed: () {
+                                                      DBHelper dh =
+                                                          new DBHelper();
+                                                      setState(() {
+                                                        dh.deleteUser(snapshot
+                                                            .data[index].id);
+                                                      });
+                                                      Navigator.pop(context);
+                                                    },
+                                                  )
+                                                ],
+                                                content: Text(
+                                                    'Do you want to delete this profile?'),
+                                              ),
+                                            ));
+                                  }
+                                },
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                );
-              });
-        } else {
-          return Center(child: new Text("No Data found"));
-        }
-      },
-    ));
+                  );
+                });
+          } else {
+            return Center(child: new Text("No Data found"));
+          }
+        },
+      ),
+    );
   }
 }
