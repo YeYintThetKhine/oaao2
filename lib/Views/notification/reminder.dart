@@ -410,8 +410,8 @@ class _ReminderListState extends State<ReminderList> {
                                                     .primaryColor),
                                             itemBuilder:
                                                 (BuildContext context) {
-                                              if (language == 'en') {
-                                                return ReminderSettingEN.options
+                                              if (language == 'mm') {
+                                                return ReminderSettingMM.options
                                                     .map((String option) {
                                                   return PopupMenuItem<String>(
                                                     value: option,
@@ -419,7 +419,7 @@ class _ReminderListState extends State<ReminderList> {
                                                   );
                                                 }).toList();
                                               } else {
-                                                return ReminderSettingMM.options
+                                                return ReminderSettingEN.options
                                                     .map((String option) {
                                                   return PopupMenuItem<String>(
                                                     value: option,
