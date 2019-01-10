@@ -25,6 +25,11 @@ class MenuSetting {
   static const List<String> languages = <String>[english, myanmar];
 }
 
+class ProfileSetting {
+  static const String logout = 'Logout';
+  static const List<String> profileSettings = <String>[logout];
+}
+
 Future<List<Reminder>> reminderData() async {
   var dbHelper = DBHelper();
   Future<List<Reminder>> reminders = dbHelper.getReminderList();
@@ -33,7 +38,8 @@ Future<List<Reminder>> reminderData() async {
 
 class HomeScreen extends StatefulWidget {
   final String language;
-  HomeScreen({this.language});
+  final AuthFunction authFunction;
+  HomeScreen({this.language, this.authFunction});
   @override
   _HomeScreenState createState() => _HomeScreenState(setLan: language);
 }
@@ -84,6 +90,7 @@ class _HomeScreenState extends State<HomeScreen>
   var dateTimeReminderList = [];
   var dateTimeAppointList = [];
   var reminderTitle = 'No Reminder';
+  var _showIcon = false;
   var reminderTime = '';
   var appointTitle = 'No Appointment';
   var appointTime = '';
@@ -104,6 +111,7 @@ class _HomeScreenState extends State<HomeScreen>
 
   @override
   void initState() {
+    _getUser();
     DBHelper dh = DBHelper();
     dh.initDb();
     animationController =
@@ -127,6 +135,18 @@ class _HomeScreenState extends State<HomeScreen>
     }
     _fetchReminder();
     _getNews();
+  }
+
+  _getUser() {
+    widget.authFunction.getUser().then((value) {
+      if (value == null) {
+        setState(() {
+          _showIcon = false;
+        });
+      } else {
+        _showIcon = true;
+      }
+    });
   }
 
   _fetchReminder() {
@@ -207,6 +227,42 @@ class _HomeScreenState extends State<HomeScreen>
     for (var item in dateTimeAppointList) {
       appointSortedTime
           .add(item.toString().substring(11, item.toString().lastIndexOf(":")));
+    }
+  }
+
+  _logoutProfile(String value) async {
+    if (value == "Logout") {
+      return showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+              title: Text(
+                "Are you sure to logout?",
+                style: TextStyle(color: Color(0xFF000000)),
+              ),
+              actions: <Widget>[
+                FlatButton(
+                    child: Text(
+                      "Yes",
+                      style: TextStyle(color: Color(0xFF333333)),
+                    ),
+                    onPressed: () {
+                      widget.authFunction.signOut();
+                      setState(() {
+                        _showIcon = false;
+                      });
+                      Navigator.pop(context);
+                    }),
+                FlatButton(
+                    child: Text(
+                      "No",
+                      style: TextStyle(color: Color(0xFF333333)),
+                    ),
+                    onPressed: () {
+                      Navigator.pop(context);
+                    }),
+              ],
+            ),
+      );
     }
   }
 
@@ -386,6 +442,25 @@ class _HomeScreenState extends State<HomeScreen>
           child: Scaffold(
             key: _scaffoldKey,
             appBar: AppBar(
+              leading: _showIcon == true
+                  ? PopupMenuButton(
+                      onSelected: _logoutProfile,
+                      icon: Icon(
+                        Icons.account_circle,
+                        size: 32.0,
+                        color: Color(0xFFFFFFFF),
+                      ),
+                      itemBuilder: (BuildContext context) {
+                        return ProfileSetting.profileSettings
+                            .map((String setting) {
+                          return PopupMenuItem<String>(
+                            value: setting,
+                            child: Text(setting),
+                          );
+                        }).toList();
+                      },
+                    )
+                  : Container(),
               automaticallyImplyLeading: false,
               backgroundColor: Color(0xFF72bb53),
               centerTitle: true,

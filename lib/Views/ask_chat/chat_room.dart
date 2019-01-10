@@ -35,10 +35,6 @@ class _ChatRoomState extends State<ChatRoom> with TickerProviderStateMixin {
   Chat chat;
   DatabaseReference dbRef = FirebaseDatabase.instance.reference();
   StreamSubscription<Event> msgSubscription;
-
-  String logout = "Are you sure to log out?";
-  String logoutYes = 'Yes';
-  String logoutNo = 'No';
   String notSignedIn = 'You are not signed in!';
   String login = 'Login';
 
@@ -108,9 +104,6 @@ class _ChatRoomState extends State<ChatRoom> with TickerProviderStateMixin {
   _changeLanguage(String lan) {
     if (lan == 'mm') {
       setState(() {
-        logout = 'အကောင့်ထွက်မည်';
-        logoutYes = 'လုပ်ဆောင်မည်';
-        logoutNo = 'မလုပ်ဆောင်ပါ';
         notSignedIn = 'အကောင့်မဝင်ထားပါ';
         login = 'အကောင့်ဝင်ရန်';
       });
@@ -141,40 +134,6 @@ class _ChatRoomState extends State<ChatRoom> with TickerProviderStateMixin {
     }
     super.dispose();
     msgSubscription.cancel();
-  }
-
-  _signOutUser() async {
-    return showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-            title: Text(
-              logout,
-              style: TextStyle(color: Color(0xFF000000)),
-            ),
-            actions: <Widget>[
-              FlatButton(
-                  child: Text(
-                    logoutYes,
-                    style: TextStyle(color: Color(0xFF333333)),
-                  ),
-                  onPressed: () {
-                    widget.authFunction.signOut();
-                    setState(() {
-                      authStatus = AuthStatus.notSignedIn;
-                    });
-                    Navigator.pop(context);
-                  }),
-              FlatButton(
-                  child: Text(
-                    logoutNo,
-                    style: TextStyle(color: Color(0xFF333333)),
-                  ),
-                  onPressed: () {
-                    Navigator.pop(context);
-                  }),
-            ],
-          ),
-    );
   }
 
   void _handleSubmitted(String text) {
@@ -288,12 +247,6 @@ class _ChatRoomState extends State<ChatRoom> with TickerProviderStateMixin {
           builder: (context, orientation) {
             return Scaffold(
                 appBar: AppBar(
-                  actions: <Widget>[
-                    IconButton(
-                      onPressed: _signOutUser,
-                      icon: Icon(Icons.exit_to_app),
-                    )
-                  ],
                   backgroundColor: Theme.of(context).primaryColor,
                   title: Text(
                     appbarTitle,

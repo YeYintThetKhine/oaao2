@@ -74,7 +74,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
           });
           Navigator.of(context).pushNamed('/LoginScreen');
         } catch (e) {
-          print(e.toString().substring(29, e.toString().lastIndexOf(",")));
           setState(() {
             _loading = false;
           });
