@@ -204,50 +204,7 @@ class _MedicineListState extends State<MedicineList> {
                                   fontSize: 20.0),
                             ),
                           )
-                        : Container()
-            // : ListView.builder(
-            //     itemCount: medList.length,
-            //     itemBuilder: (context, i) {
-            //       return Container(
-            //         margin:
-            //             EdgeInsets.fromLTRB(12.0, 8.0, 12.0, 0.0),
-            //         decoration: BoxDecoration(
-            //             borderRadius: BorderRadius.circular(10.0),
-            //             border: Border.all(
-            //                 width: 1.0,
-            //                 color: Theme.of(context).primaryColor)),
-            //         child: FlatButton(
-            //           padding:
-            //               EdgeInsets.only(top: 12.0, bottom: 12.0),
-            //           onPressed: () {
-            //             Navigator.push(
-            //                 context,
-            //                 SlideRightAnimation(
-            //                     widget: MedicineDetail(
-            //                   medicine: medList[i],
-            //                 )));
-            //           },
-            //           child: ListTile(
-            //             leading: Image.network(
-            //               medList[i].medImg,
-            //               width: 62.0,
-            //             ),
-            //             title: Text(
-            //               medList[i].medName,
-            //               style: TextStyle(
-            //                   color: Theme.of(context).primaryColor,
-            //                   fontSize: 18.0),
-            //             ),
-            //             trailing: Icon(
-            //               Icons.keyboard_arrow_right,
-            //               color: Theme.of(context).primaryColor,
-            //             ),
-            //           ),
-            //         ),
-            //       );
-            //     },
-            //   )
-            );
+                        : Container());
       },
     );
   }

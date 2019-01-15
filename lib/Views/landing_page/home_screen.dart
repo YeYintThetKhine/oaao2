@@ -17,17 +17,13 @@ import 'package:intl/intl.dart';
 import 'dart:io';
 import '../../Views/records_book/profiles.dart';
 import '../../Auth/auth.dart';
+import 'package:firebase_database/firebase_database.dart';
 
 class MenuSetting {
   static const String myanmar = 'Myanmar';
   static const String english = 'English';
 
   static const List<String> languages = <String>[english, myanmar];
-}
-
-class ProfileSetting {
-  static const String logout = 'Logout';
-  static const List<String> profileSettings = <String>[logout];
 }
 
 Future<List<Reminder>> reminderData() async {
@@ -46,11 +42,13 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen>
     with SingleTickerProviderStateMixin {
+  DatabaseReference dbRef = FirebaseDatabase.instance.reference();
   final String setLan;
   _HomeScreenState({this.setLan});
   Animation animation, logoAnimation, menuAnimation;
   AnimationController animationController;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  var _isLoading = false;
   News news;
   List<News> newsList = [];
   List<String> menuName = [
@@ -69,14 +67,6 @@ class _HomeScreenState extends State<HomeScreen>
     'assets/icons/knowledge.png',
     'assets/icons/ask_chat.png'
   ];
-  List<String> newsTitle = [
-    'Excess waist fat is common in many people with a high risk of heart disease and stroke, according to a recent European study.',
-    'Breast cancer testing guidelines out of date, missing genetic screening, says study',
-    'Why you feel tired all the time',
-    'Most US adults have not gotten a flu shot for this mild season',
-    "Fatal brain-eating amoeba may have come from woman's neti pot"
-  ];
-  List<String> date = ['11', '10', '9', '8', '7'];
 
   String menuNews = "News";
   String language = "en";
@@ -90,28 +80,41 @@ class _HomeScreenState extends State<HomeScreen>
   var dateTimeReminderList = [];
   var dateTimeAppointList = [];
   var reminderTitle = 'No Reminder';
-  var _showIcon = false;
   var reminderTime = '';
   var appointTitle = 'No Appointment';
   var appointTime = '';
   var appointShowDate = '';
   var reminderShowDate = '';
   var scheduleDate = DateFormat("yyyy-MM-dd H:mm");
+  var newsData = '';
 
   _getNews() {
-    for (var i = 0; i < newsTitle.length; i++) {
-      news = News(
-          newsTitle: newsTitle[i],
-          newsDate: date[i],
-          newsContent:
-              "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.");
-      newsList.add(news);
-    }
+    dbRef.child('news').child(language).once().then((DataSnapshot dataSnap) {
+      if (dataSnap.value == Null) {
+        setState(() {
+          newsData = 'No News';
+        });
+      } else {
+        var keys = dataSnap.value.keys;
+        var value = dataSnap.value;
+        for (var key in keys) {
+          var data = News(
+            newsDate: value[key]['date'],
+            newsContent: value[key]['desc'],
+            newsTitle: value[key]['heading'],
+            newsImg: value[key]['img'],
+          );
+          newsList.add(data);
+        }
+        setState(() {
+          _isLoading = true;
+        });
+      }
+    });
   }
 
   @override
   void initState() {
-    _getUser();
     DBHelper dh = DBHelper();
     dh.initDb();
     animationController =
@@ -135,18 +138,6 @@ class _HomeScreenState extends State<HomeScreen>
     }
     _fetchReminder();
     _getNews();
-  }
-
-  _getUser() {
-    widget.authFunction.getUser().then((value) {
-      if (value == null) {
-        setState(() {
-          _showIcon = false;
-        });
-      } else {
-        _showIcon = true;
-      }
-    });
   }
 
   _fetchReminder() {
@@ -230,42 +221,6 @@ class _HomeScreenState extends State<HomeScreen>
     }
   }
 
-  _logoutProfile(String value) async {
-    if (value == "Logout") {
-      return showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-              title: Text(
-                "Are you sure to logout?",
-                style: TextStyle(color: Color(0xFF000000)),
-              ),
-              actions: <Widget>[
-                FlatButton(
-                    child: Text(
-                      "Yes",
-                      style: TextStyle(color: Color(0xFF333333)),
-                    ),
-                    onPressed: () {
-                      widget.authFunction.signOut();
-                      setState(() {
-                        _showIcon = false;
-                      });
-                      Navigator.pop(context);
-                    }),
-                FlatButton(
-                    child: Text(
-                      "No",
-                      style: TextStyle(color: Color(0xFF333333)),
-                    ),
-                    onPressed: () {
-                      Navigator.pop(context);
-                    }),
-              ],
-            ),
-      );
-    }
-  }
-
   _languageChg(String lang) {
     if (lang == "Myanmar") {
       setState(() {
@@ -280,6 +235,9 @@ class _HomeScreenState extends State<HomeScreen>
         menuNews = "သတင်းများ";
         language = "mm";
         dynSize = 14.0;
+        newsList.clear();
+        _isLoading = false;
+        _getNews();
       });
     } else {
       setState(() {
@@ -294,6 +252,9 @@ class _HomeScreenState extends State<HomeScreen>
         menuNews = "News";
         language = "en";
         dynSize = 16.0;
+        newsList.clear();
+        _isLoading = false;
+        _getNews();
       });
     }
   }
@@ -442,30 +403,11 @@ class _HomeScreenState extends State<HomeScreen>
           child: Scaffold(
             key: _scaffoldKey,
             appBar: AppBar(
-              leading: _showIcon == true
-                  ? PopupMenuButton(
-                      onSelected: _logoutProfile,
-                      icon: Icon(
-                        Icons.account_circle,
-                        size: 32.0,
-                        color: Color(0xFFFFFFFF),
-                      ),
-                      itemBuilder: (BuildContext context) {
-                        return ProfileSetting.profileSettings
-                            .map((String setting) {
-                          return PopupMenuItem<String>(
-                            value: setting,
-                            child: Text(setting),
-                          );
-                        }).toList();
-                      },
-                    )
-                  : Container(),
               automaticallyImplyLeading: false,
               backgroundColor: Color(0xFF72bb53),
               centerTitle: true,
               title: Text(
-                "OAAO",
+                "OAAO Health Care",
                 style: TextStyle(color: Color(0xFFFFFFFF), fontSize: 20.0),
               ),
               actions: <Widget>[
@@ -623,120 +565,142 @@ class _HomeScreenState extends State<HomeScreen>
                                   color: Color.fromRGBO(0, 0, 0, 0.5),
                                 ),
                               ),
-                              CarouselSlider(
-                                  distortion: false,
-                                  items: newsList.map((i) {
-                                    return Builder(
-                                      builder: (BuildContext context) {
-                                        return Container(
-                                          margin: EdgeInsets.fromLTRB(
-                                              12.0, 8.0, 12.0, 8.0),
-                                          decoration: BoxDecoration(
-                                              color: Theme.of(context)
-                                                  .textTheme
-                                                  .title
-                                                  .color,
-                                              borderRadius:
-                                                  BorderRadius.circular(10.0),
-                                              boxShadow: [
-                                                BoxShadow(
-                                                    color: Color.fromRGBO(
-                                                        114, 187, 83, 0.5),
-                                                    blurRadius: 10.0)
-                                              ]),
-                                          child: FlatButton(
-                                            highlightColor: Colors.transparent,
-                                            shape: RoundedRectangleBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(
-                                                        10.0)),
-                                            padding: EdgeInsets.all(16.0),
-                                            onPressed: () {
-                                              Navigator.push(
-                                                  context,
-                                                  SlideFromBottomAnimation(
-                                                      widget: NewsPage(
-                                                    newsId: i.newsTitle,
-                                                    newsDate: i.newsDate,
-                                                    language: language,
-                                                    appbarTitle: menuNews,
-                                                  )));
-                                            },
-                                            child: Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: <Widget>[
-                                                Row(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment
-                                                          .spaceBetween,
+                              _isLoading == true
+                                  ? CarouselSlider(
+                                      distortion: false,
+                                      items: newsList.map((i) {
+                                        return Builder(
+                                          builder: (BuildContext context) {
+                                            return Container(
+                                              margin: EdgeInsets.fromLTRB(
+                                                  12.0, 8.0, 12.0, 8.0),
+                                              decoration: BoxDecoration(
+                                                  color: Theme.of(context)
+                                                      .textTheme
+                                                      .title
+                                                      .color,
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                          10.0),
+                                                  boxShadow: [
+                                                    BoxShadow(
+                                                        color: Color.fromRGBO(
+                                                            114, 187, 83, 0.5),
+                                                        blurRadius: 10.0)
+                                                  ]),
+                                              child: FlatButton(
+                                                highlightColor:
+                                                    Colors.transparent,
+                                                shape: RoundedRectangleBorder(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            10.0)),
+                                                padding: EdgeInsets.all(16.0),
+                                                onPressed: () {
+                                                  Navigator.push(
+                                                      context,
+                                                      SlideFromBottomAnimation(
+                                                          widget: NewsPage(
+                                                        news: i,
+                                                        language: language,
+                                                        appbarTitle: menuNews,
+                                                      )));
+                                                },
+                                                child: Column(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
                                                   children: <Widget>[
-                                                    Container(
-                                                      alignment:
-                                                          AlignmentDirectional
-                                                              .centerStart,
-                                                      padding:
-                                                          EdgeInsets.all(8.0),
-                                                      color: Theme.of(context)
-                                                          .primaryColor,
-                                                      child: Column(
-                                                        crossAxisAlignment:
-                                                            CrossAxisAlignment
-                                                                .end,
-                                                        children: <Widget>[
-                                                          Text(
-                                                            i.newsDate,
-                                                            style: TextStyle(
-                                                                color: Theme.of(
-                                                                        context)
-                                                                    .textTheme
-                                                                    .title
-                                                                    .color),
+                                                    Row(
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment
+                                                              .spaceBetween,
+                                                      children: <Widget>[
+                                                        Container(
+                                                          alignment:
+                                                              AlignmentDirectional
+                                                                  .centerStart,
+                                                          padding:
+                                                              EdgeInsets.all(
+                                                                  8.0),
+                                                          color:
+                                                              Theme.of(context)
+                                                                  .primaryColor,
+                                                          child: Column(
+                                                            crossAxisAlignment:
+                                                                CrossAxisAlignment
+                                                                    .end,
+                                                            children: <Widget>[
+                                                              Text(
+                                                                i.newsDate.substring(
+                                                                    0,
+                                                                    i.newsDate
+                                                                        .indexOf(
+                                                                            ' ')),
+                                                                style: TextStyle(
+                                                                    color: Theme.of(
+                                                                            context)
+                                                                        .textTheme
+                                                                        .title
+                                                                        .color),
+                                                              ),
+                                                              Text(
+                                                                  i.newsDate.substring(
+                                                                      3,
+                                                                      i.newsDate
+                                                                          .lastIndexOf(
+                                                                              ' ')),
+                                                                  style: TextStyle(
+                                                                      color: Theme.of(
+                                                                              context)
+                                                                          .textTheme
+                                                                          .title
+                                                                          .color)),
+                                                            ],
                                                           ),
-                                                          Text("DEC",
-                                                              style: TextStyle(
-                                                                  color: Theme.of(
-                                                                          context)
-                                                                      .textTheme
-                                                                      .title
-                                                                      .color)),
-                                                        ],
+                                                        ),
+                                                        Icon(
+                                                          Icons.event_note,
+                                                          color:
+                                                              Theme.of(context)
+                                                                  .primaryColor,
+                                                          size: 48.0,
+                                                        )
+                                                      ],
+                                                    ),
+                                                    Padding(
+                                                      padding:
+                                                          const EdgeInsets.only(
+                                                              top: 12.0,
+                                                              bottom: 0.0),
+                                                      child: Text(
+                                                        i.newsTitle,
+                                                        maxLines: 2,
+                                                        overflow: TextOverflow
+                                                            .ellipsis,
+                                                        style: TextStyle(
+                                                            color: Color(
+                                                                0xFF333333),
+                                                            height: 1.25,
+                                                            fontSize: 16.0),
                                                       ),
                                                     ),
-                                                    Icon(
-                                                      Icons.event_note,
-                                                      color: Theme.of(context)
-                                                          .primaryColor,
-                                                      size: 48.0,
-                                                    )
                                                   ],
                                                 ),
-                                                Padding(
-                                                  padding:
-                                                      const EdgeInsets.only(
-                                                          top: 12.0,
-                                                          bottom: 0.0),
-                                                  child: Text(
-                                                    i.newsTitle,
-                                                    maxLines: 2,
-                                                    overflow:
-                                                        TextOverflow.ellipsis,
-                                                    style: TextStyle(
-                                                        color:
-                                                            Color(0xFF333333),
-                                                        height: 1.25,
-                                                        fontSize: 16.0),
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
+                                              ),
+                                            );
+                                          },
                                         );
-                                      },
-                                    );
-                                  }).toList(),
-                                  height: 200.0,
-                                  autoPlay: false),
+                                      }).toList(),
+                                      height: 200.0,
+                                      autoPlay: false)
+                                  : Container(
+                                      padding:
+                                          EdgeInsets.symmetric(vertical: 16.0),
+                                      child: CircularProgressIndicator(
+                                        valueColor: AlwaysStoppedAnimation(
+                                            Theme.of(context).primaryColor),
+                                      ),
+                                    )
                             ],
                           ),
                       childCount: 1),

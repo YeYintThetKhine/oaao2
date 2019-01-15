@@ -1,25 +1,21 @@
 import 'package:flutter/material.dart';
+import '../../Models/landing_page/news.dart';
 
 class NewsPage extends StatefulWidget {
-  final String newsId;
-  final String newsDate;
+  final News news;
   final String language;
   final String appbarTitle;
-  NewsPage({this.newsId, this.newsDate, this.language, this.appbarTitle});
+  NewsPage({this.news, this.language, this.appbarTitle});
   @override
-  _NewsPageState createState() => _NewsPageState(
-      newsId: newsId,
-      newsDate: newsDate,
-      language: language,
-      appbarTitle: appbarTitle);
+  _NewsPageState createState() =>
+      _NewsPageState(news: news, language: language, appbarTitle: appbarTitle);
 }
 
 class _NewsPageState extends State<NewsPage> {
-  final String newsId;
-  final String newsDate;
+  News news;
   final String language;
   final String appbarTitle;
-  _NewsPageState({this.newsId, this.newsDate, this.language, this.appbarTitle});
+  _NewsPageState({this.news, this.language, this.appbarTitle});
   @override
   Widget build(BuildContext context) {
     var device = MediaQuery.of(context).size;
@@ -45,9 +41,13 @@ class _NewsPageState extends State<NewsPage> {
                             child: Row(
                               children: <Widget>[
                                 Container(
+                                  alignment: Alignment.topCenter,
                                   width: (device.width - 16.0) / 3,
-                                  child: Image.asset(
-                                    "assets/images/image.jpg",
+                                  child: Image.network(
+                                    news.newsImg,
+                                    fit: BoxFit.cover,
+                                    height: 300.0,
+                                    alignment: Alignment.center,
                                   ),
                                 ),
                                 Container(
@@ -69,13 +69,12 @@ class _NewsPageState extends State<NewsPage> {
                                           padding: const EdgeInsets.only(
                                               left: 12.0, top: 6.0),
                                           child: Text(
-                                            newsId,
+                                            news.newsTitle.toUpperCase(),
                                             maxLines: 4,
                                             style: TextStyle(
                                                 fontSize: 18.0,
-                                                // fontWeight: FontWeight.bold,
-                                                color: Theme.of(context)
-                                                    .primaryColor),
+                                                fontWeight: FontWeight.bold,
+                                                color: Color(0xFF333333)),
                                           ),
                                         ),
                                       ),
@@ -85,7 +84,7 @@ class _NewsPageState extends State<NewsPage> {
                                         padding: const EdgeInsets.only(
                                             left: 12.0, bottom: 6.0),
                                         child: Text(
-                                          "$newsDate/12/2018",
+                                          news.newsDate,
                                           style: TextStyle(
                                               fontSize: 16.0,
                                               color: Color(0xFF888888)),
@@ -108,7 +107,7 @@ class _NewsPageState extends State<NewsPage> {
                             padding: EdgeInsets.only(
                                 left: 16.0, right: 16.0, bottom: 12.0),
                             child: Text(
-                              "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum. There are many variations of passages of Lorem Ipsum available, but the majority have suffered alteration in some form, by injected humour, or randomised words which don't look even slightly believable. If you are going to use a passage of Lorem Ipsum, you need to be sure there isn't anything embarrassing hidden in the middle of text. All the Lorem Ipsum generators on the Internet tend to repeat predefined chunks as necessary, making this the first true generator on the Internet. It uses a dictionary of over 200 Latin words, combined with a handful of model sentence structures, to generate Lorem Ipsum which looks reasonable. The generated Lorem Ipsum is therefore always free from repetition, injected humour, or non-characteristic words etc.",
+                              news.newsContent,
                               style: TextStyle(height: 1.5, fontSize: 16.0),
                             ),
                           )
