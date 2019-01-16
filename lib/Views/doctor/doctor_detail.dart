@@ -3,6 +3,7 @@ import 'package:firebase_database/firebase_database.dart';
 import '../../Models/doctor/doctor.dart';
 import '../../Models/doctor/doc_residing_clinic.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../Views/doctor/residing_hospital.dart';
 
 class DocDetail extends StatefulWidget {
   final Doctor doctor;
@@ -146,13 +147,6 @@ class _DocDetailState extends State<DocDetail> {
                   ],
                 ),
               ),
-              // actions: <Widget>[
-              //   new IconButton(
-              //     icon: Icon(Icons.star),
-              //     color: Colors.black54,
-              //     onPressed: () {},
-              //   ),
-              // ],
             ),
             SliverList(
                 delegate: new SliverChildBuilderDelegate(
@@ -378,13 +372,14 @@ class _DocDetailState extends State<DocDetail> {
                                                                     ),
                                                                     onPressed:
                                                                         () {
-                                                                      // Navigator.push(
-                                                                      //     context,
-                                                                      //     MaterialPageRoute(
-                                                                      //         builder: (context) => ResidingHospital(
-                                                                      //             residingClinic[i].hospital,
-                                                                      //             residingClinic[i].type,
-                                                                      //             choiceLang)));
+                                                                      Navigator.push(
+                                                                          context,
+                                                                          MaterialPageRoute(
+                                                                              builder: (context) => ResidingHospital(
+                                                                                    hospName: schedules[i].hospital,
+                                                                                    lan: language,
+                                                                                    hospType: schedules[i].type,
+                                                                                  )));
                                                                     },
                                                                   ),
                                                                   new RaisedButton(

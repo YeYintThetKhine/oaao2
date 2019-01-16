@@ -31,12 +31,13 @@ class DBHelper {
       name TEXT NOT NULL UNIQUE)""");
 
     await db.execute("""CREATE TABLE records(
-      rec_id TEXT PRIMARY KEY,
+      rec_id TEXT UNIQUE NOT NULL,
       user_id INTEGER NOT NULL,
       doctor TEXT NOT NULL,
       hospital TEXT NOT NULL,
       problem TEXT NOT NULL,
       date TEXT NOT NULL,
+      rec_order INTEGER PRIMARY KEY AUTOINCREMENT,
       FOREIGN KEY (user_id) REFERENCES user(id))""");
 
     print("Created tables");
@@ -68,19 +69,19 @@ class DBHelper {
     });
   }
 
+  Future<int> getCount() async {
+    var dbClient = await db;
+    var count = Sqflite.firstIntValue(
+        await dbClient.rawQuery('SELECT COUNT(*) FROM user'));
+    return count;
+  }
+
   //Profile add function
   Future<void> addUser(User user) async {
     var dbClient = await db;
-    int count = Sqflite.firstIntValue(
-        await dbClient.rawQuery('Select Count(*) from user'));
-
-    if (count <= 4) {
-      await dbClient.transaction((txn) async {
-        return await txn.insert("user", user.toMap());
-      });
-    } else {
-      throw ('OverLimit');
-    }
+    await dbClient.transaction((txn) async {
+      return await txn.insert("user", user.toMap());
+    });
   }
 
   void addImages(ImageData imgData) async {
@@ -179,10 +180,10 @@ class DBHelper {
   }
 
   //Retrieve Medical Records from database
-  Future<List<Records>> fetchRecordsList(int userid) async {
+  Future<List<Records>> fetchRecordsList({int userid, String order}) async {
     var dbClient = await db;
-    List<Map> list = await dbClient
-        .rawQuery('SELECT * FROM records WHERE user_id = $userid');
+    List<Map> list = await dbClient.rawQuery(
+        "SELECT * FROM records WHERE user_id = $userid ORDER BY rec_order $order");
     List<Records> records = new List();
     for (int i = 0; i < list.length; i++) {
       records.add(Records(
@@ -197,10 +198,10 @@ class DBHelper {
     return records;
   }
 
-  Future<Records> fetchaRecord(int userid, int recid) async {
+  Future<Records> fetchaRecord(int userid, String recid) async {
     var dbClient = await db;
     List<Map> list = await dbClient.rawQuery(
-        'SELECT * FROM records WHERE user_id = $userid AND rec_id = $recid');
+        "SELECT * FROM records WHERE user_id = $userid AND rec_id = '$recid'");
     List<Records> records = new List();
     for (int i = 0; i < list.length; i++) {
       records.add(Records(
@@ -216,11 +217,15 @@ class DBHelper {
   }
 
   //Delete Medical Records from database
-  void deleteRecord(int recid) async {
+  void deleteRecord(String recid) async {
     var dbClient = await db;
     await dbClient.transaction((txn) async {
       return await txn
           .delete("records", where: "rec_id = ?", whereArgs: [recid]);
+    });
+    await dbClient.transaction((txn) async {
+      return await txn
+          .delete("recordImages", where: "rec_id = ?", whereArgs: [recid]);
     });
   }
 
@@ -230,6 +235,17 @@ class DBHelper {
     await dbClient.transaction((txn) async {
       await txn.update("records", rec.toMap(),
           where: "rec_id = ?", whereArgs: [rec.recid]);
+    });
+  }
+
+  void updateImages({ImageData imgData, recid}) async {
+    var dbClient = await db;
+    await dbClient.transaction((txn) async {
+      return await txn
+          .delete("recordImages", where: "rec_id = ?", whereArgs: [recid]);
+    });
+    await dbClient.transaction((txn) async {
+      return await txn.insert("recordImages", imgData.toMap());
     });
   }
 

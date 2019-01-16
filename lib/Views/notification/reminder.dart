@@ -46,13 +46,15 @@ class HeadingItem implements ListItem {
 
 class MessageItem implements ListItem {
   final int id;
+  final DateTime timeStamp;
   final String date;
   final String time;
   final String action;
   final String note;
   final String type;
 
-  MessageItem(this.id, this.date, this.time, this.action, this.note, this.type);
+  MessageItem(this.id, this.timeStamp, this.date, this.time, this.action,
+      this.note, this.type);
 }
 
 class _ReminderListState extends State<ReminderList> {
@@ -62,6 +64,7 @@ class _ReminderListState extends State<ReminderList> {
   List<String> dateList = [];
   List<String> timeList = [];
   List<DateTime> intDate = [];
+  List<Reminder> reminderList = [];
   Future<List<Reminder>> remind;
   var appTitle = 'Reminder List';
   var noReminder = 'No Reminder';
@@ -78,24 +81,38 @@ class _ReminderListState extends State<ReminderList> {
     remind = reminderData();
     remind.then((data) {
       for (var i = 0; i < data.length; i++) {
-        intDate.add(
-            dateFormat.parse(data[i].remindDate + " " + data[i].remindTime));
+        var reminder = Reminder(
+          remindID: data[i].remindID,
+          timeStamp:
+              dateFormat.parse(data[i].remindDate + " " + data[i].remindTime),
+          remindDate: data[i].remindDate,
+          remindTime: data[i].remindTime,
+          remindType: data[i].remindType,
+          remindAction: data[i].remindAction,
+          remindNote: data[i].remindNote,
+        );
+        reminderList.add(reminder);
+      }
+      reminderList.sort((a, b) => a.timeStamp.compareTo(b.timeStamp));
+      for (var i = 0; i < reminderList.length; i++) {
+        intDate.add(dateFormat.parse(
+            reminderList[i].remindDate + " " + reminderList[i].remindTime));
       }
       _sortnSplit();
       for (var item in dateList.toSet().toList()) {
         items.add(HeadingItem(item));
-        for (var i = 0; i < timeList.length; i++) {
-          for (var x = 0; x < dateList.length; x++) {
-            if (timeList[i] == data[x].remindTime &&
-                item == data[x].remindDate) {
-              items.add(MessageItem(
-                  data[x].remindID,
-                  data[x].remindDate,
-                  data[x].remindTime,
-                  data[x].remindAction,
-                  data[x].remindNote,
-                  data[x].remindType));
-            }
+        for (var i = 0; i < reminderList.length; i++) {
+          if (item == reminderList[i].remindDate) {
+            items.add(MessageItem(
+                reminderList[i].remindID,
+                dateFormat.parse(reminderList[i].remindDate +
+                    " " +
+                    reminderList[i].remindTime),
+                reminderList[i].remindDate,
+                reminderList[i].remindTime,
+                reminderList[i].remindAction,
+                reminderList[i].remindNote,
+                reminderList[i].remindType));
           }
         }
       }
@@ -116,13 +133,8 @@ class _ReminderListState extends State<ReminderList> {
   }
 
   _sortnSplit() {
-    intDate.sort();
     for (var date in intDate) {
       dateList.add(date.toString().substring(0, date.toString().indexOf(' ')));
-    }
-    for (var time in intDate) {
-      timeList
-          .add(time.toString().substring(11, time.toString().lastIndexOf(':')));
     }
   }
 
@@ -250,6 +262,15 @@ class _ReminderListState extends State<ReminderList> {
     }
   }
 
+  Future<bool> _backHomeScreen() {
+    return Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+            builder: (BuildContext context) => HomeScreen(
+                  language: language,
+                )));
+  }
+
   @override
   Widget build(BuildContext context) {
     var device = MediaQuery.of(context).size;
@@ -257,209 +278,219 @@ class _ReminderListState extends State<ReminderList> {
       builder: (context, orientation) {
         return OrientationBuilder(
           builder: (context, orientation) {
-            return Scaffold(
-                appBar: AppBar(
-                  automaticallyImplyLeading: false,
-                  leading: IconButton(
-                    icon: Icon(Icons.arrow_back),
-                    onPressed: () {
-                      Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => HomeScreen(
-                                    language: language,
-                                    authFunction: Authentic(),
-                                  )));
-                    },
+            return WillPopScope(
+              onWillPop: _backHomeScreen,
+              child: Scaffold(
+                  appBar: AppBar(
+                    automaticallyImplyLeading: false,
+                    leading: IconButton(
+                      icon: Icon(Icons.arrow_back),
+                      onPressed: () {
+                        Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => HomeScreen(
+                                      language: language,
+                                    )));
+                      },
+                    ),
+                    iconTheme: Theme.of(context).iconTheme,
+                    title: Text(
+                      appTitle,
+                      style: TextStyle(
+                          color: Theme.of(context).textTheme.title.color),
+                    ),
+                    backgroundColor: Theme.of(context).primaryColor,
                   ),
-                  iconTheme: Theme.of(context).iconTheme,
-                  title: Text(
-                    appTitle,
-                    style: TextStyle(
-                        color: Theme.of(context).textTheme.title.color),
-                  ),
-                  backgroundColor: Theme.of(context).primaryColor,
-                ),
-                body: FutureBuilder<List<Reminder>>(
-                    future: reminderData(),
-                    builder: (context, snapShot) {
-                      if (snapShot.hasData && snapShot.data.length != 0) {
-                        return ListView.builder(
-                          itemCount: items.length,
-                          itemBuilder: (context, i) {
-                            final item = items[i];
-                            if (item is HeadingItem) {
-                              return Container(
-                                margin: EdgeInsets.only(top: 8.0),
-                                child: ListTile(
-                                  leading: Icon(
-                                    Icons.event_note,
-                                    size: 32.0,
-                                    color: Theme.of(context).primaryColor,
-                                  ),
-                                  title: Text(
-                                    item.heading.toUpperCase(),
-                                    style: TextStyle(
-                                        color: Theme.of(context).primaryColor,
-                                        fontSize: 18.0,
-                                        fontWeight: FontWeight.w600),
-                                  ),
-                                ),
-                              );
-                            } else if (item is MessageItem) {
-                              return Container(
-                                child: Container(
-                                  margin: EdgeInsets.all(8.0),
-                                  decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(10.0),
-                                      color: Theme.of(context)
-                                          .textTheme
-                                          .title
-                                          .color,
-                                      boxShadow: [
-                                        BoxShadow(
-                                            color: Color.fromRGBO(
-                                                114, 187, 83, 0.25),
-                                            blurRadius: 10.0)
-                                      ]),
-                                  width: (device.width) - 24.0,
-                                  child: FlatButton(
-                                    highlightColor:
-                                        Color.fromRGBO(255, 255, 255, 0.5),
-                                    padding: EdgeInsets.all(0.0),
-                                    onPressed: () {
-                                      _showReminderDetail(items[i]);
-                                    },
-                                    child: Row(
-                                      children: <Widget>[
-                                        Container(
-                                          padding: EdgeInsets.symmetric(
-                                              vertical: 8.0),
-                                          decoration: BoxDecoration(
-                                              color: Theme.of(context)
-                                                  .primaryColor,
-                                              borderRadius: BorderRadius.only(
-                                                  bottomLeft:
-                                                      Radius.circular(10.0),
-                                                  topLeft:
-                                                      Radius.circular(10.0))),
-                                          width: (device.width - 24.0) / 5,
-                                          child: Column(
-                                            children: <Widget>[
-                                              Icon(
-                                                Icons.alarm,
-                                                color: Theme.of(context)
-                                                    .textTheme
-                                                    .title
-                                                    .color,
-                                              ),
-                                              Padding(
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                        vertical: 4.0),
-                                                child: Text(
-                                                  item.time,
-                                                  style: TextStyle(
-                                                      color: Theme.of(context)
-                                                          .textTheme
-                                                          .title
-                                                          .color),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                        Container(
-                                          padding: EdgeInsets.only(left: 12.0),
-                                          width: (device.width - 24.0) / 2,
-                                          child: Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                Padding(
-                                                  padding: const EdgeInsets
-                                                      .symmetric(vertical: 4.0),
-                                                  child: Text(
-                                                    item.action,
-                                                    style: TextStyle(
-                                                        color: Theme.of(context)
-                                                            .primaryColor,
-                                                        fontSize: 16.0),
-                                                  ),
-                                                ),
-                                                Padding(
-                                                  padding: const EdgeInsets
-                                                      .symmetric(vertical: 4.0),
-                                                  child: Text(
-                                                    item.type,
-                                                    style: TextStyle(
-                                                        color:
-                                                            Color(0xFF888888),
-                                                        fontSize: 14.0),
-                                                  ),
-                                                ),
-                                              ]),
-                                        ),
-                                        Container(
-                                          alignment: Alignment.centerRight,
-                                          width: (device.width - 24.0) / 4,
-                                          child: PopupMenuButton(
-                                            onSelected: (String choice) {
-                                              _options(item, choice);
-                                            },
-                                            icon: Icon(Icons.more_vert,
-                                                color: Theme.of(context)
-                                                    .primaryColor),
-                                            itemBuilder:
-                                                (BuildContext context) {
-                                              if (language == 'mm') {
-                                                return ReminderSettingMM.options
-                                                    .map((String option) {
-                                                  return PopupMenuItem<String>(
-                                                    value: option,
-                                                    child: Text(option),
-                                                  );
-                                                }).toList();
-                                              } else {
-                                                return ReminderSettingEN.options
-                                                    .map((String option) {
-                                                  return PopupMenuItem<String>(
-                                                    value: option,
-                                                    child: Text(option),
-                                                  );
-                                                }).toList();
-                                              }
-                                            },
-                                          ),
-                                        )
-                                      ],
+                  body: FutureBuilder<List<Reminder>>(
+                      future: reminderData(),
+                      builder: (context, snapShot) {
+                        if (snapShot.hasData && snapShot.data.length != 0) {
+                          return ListView.builder(
+                            itemCount: items.length,
+                            itemBuilder: (context, i) {
+                              final item = items[i];
+                              if (item is HeadingItem) {
+                                return Container(
+                                  margin: EdgeInsets.only(top: 8.0),
+                                  child: ListTile(
+                                    leading: Icon(
+                                      Icons.event_note,
+                                      size: 32.0,
+                                      color: Theme.of(context).primaryColor,
+                                    ),
+                                    title: Text(
+                                      item.heading.toUpperCase(),
+                                      style: TextStyle(
+                                          color: Theme.of(context).primaryColor,
+                                          fontSize: 18.0,
+                                          fontWeight: FontWeight.w600),
                                     ),
                                   ),
-                                ),
-                              );
-                            }
-                          },
-                        );
-                      } else {
-                        return Center(
-                            child: new Text(
-                          noReminder,
-                          style: TextStyle(fontSize: 18.0),
-                        ));
-                      }
-                    }),
-                floatingActionButton: FloatingActionButton(
-                  onPressed: () {
-                    Navigator.push(
-                        context,
-                        SlideRightAnimation(
-                            widget: ReminderCreate(
-                          language: language,
-                        )));
-                  },
-                  backgroundColor: Theme.of(context).primaryColor,
-                  child: Icon(Icons.add),
-                ));
+                                );
+                              } else if (item is MessageItem) {
+                                return Container(
+                                  child: Container(
+                                    margin: EdgeInsets.all(8.0),
+                                    decoration: BoxDecoration(
+                                        borderRadius:
+                                            BorderRadius.circular(10.0),
+                                        color: Theme.of(context)
+                                            .textTheme
+                                            .title
+                                            .color,
+                                        boxShadow: [
+                                          BoxShadow(
+                                              color: Color.fromRGBO(
+                                                  114, 187, 83, 0.25),
+                                              blurRadius: 10.0)
+                                        ]),
+                                    width: (device.width) - 24.0,
+                                    child: FlatButton(
+                                      highlightColor:
+                                          Color.fromRGBO(255, 255, 255, 0.5),
+                                      padding: EdgeInsets.all(0.0),
+                                      onPressed: () {
+                                        _showReminderDetail(items[i]);
+                                      },
+                                      child: Row(
+                                        children: <Widget>[
+                                          Container(
+                                            padding: EdgeInsets.symmetric(
+                                                vertical: 8.0),
+                                            decoration: BoxDecoration(
+                                                color: Theme.of(context)
+                                                    .primaryColor,
+                                                borderRadius: BorderRadius.only(
+                                                    bottomLeft:
+                                                        Radius.circular(10.0),
+                                                    topLeft:
+                                                        Radius.circular(10.0))),
+                                            width: (device.width - 24.0) / 5,
+                                            child: Column(
+                                              children: <Widget>[
+                                                Icon(
+                                                  Icons.alarm,
+                                                  color: Theme.of(context)
+                                                      .textTheme
+                                                      .title
+                                                      .color,
+                                                ),
+                                                Padding(
+                                                  padding: const EdgeInsets
+                                                      .symmetric(vertical: 4.0),
+                                                  child: Text(
+                                                    item.time,
+                                                    style: TextStyle(
+                                                        color: Theme.of(context)
+                                                            .textTheme
+                                                            .title
+                                                            .color),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          Container(
+                                            padding:
+                                                EdgeInsets.only(left: 12.0),
+                                            width: (device.width - 24.0) / 2,
+                                            child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  Padding(
+                                                    padding: const EdgeInsets
+                                                            .symmetric(
+                                                        vertical: 4.0),
+                                                    child: Text(
+                                                      item.action,
+                                                      style: TextStyle(
+                                                          color:
+                                                              Theme.of(context)
+                                                                  .primaryColor,
+                                                          fontSize: 16.0),
+                                                    ),
+                                                  ),
+                                                  Padding(
+                                                    padding: const EdgeInsets
+                                                            .symmetric(
+                                                        vertical: 4.0),
+                                                    child: Text(
+                                                      item.type,
+                                                      style: TextStyle(
+                                                          color:
+                                                              Color(0xFF888888),
+                                                          fontSize: 14.0),
+                                                    ),
+                                                  ),
+                                                ]),
+                                          ),
+                                          Container(
+                                            alignment: Alignment.centerRight,
+                                            width: (device.width - 24.0) / 4,
+                                            child: PopupMenuButton(
+                                              onSelected: (String choice) {
+                                                _options(item, choice);
+                                              },
+                                              icon: Icon(Icons.more_vert,
+                                                  color: Theme.of(context)
+                                                      .primaryColor),
+                                              itemBuilder:
+                                                  (BuildContext context) {
+                                                if (language == 'mm') {
+                                                  return ReminderSettingMM
+                                                      .options
+                                                      .map((String option) {
+                                                    return PopupMenuItem<
+                                                        String>(
+                                                      value: option,
+                                                      child: Text(option),
+                                                    );
+                                                  }).toList();
+                                                } else {
+                                                  return ReminderSettingEN
+                                                      .options
+                                                      .map((String option) {
+                                                    return PopupMenuItem<
+                                                        String>(
+                                                      value: option,
+                                                      child: Text(option),
+                                                    );
+                                                  }).toList();
+                                                }
+                                              },
+                                            ),
+                                          )
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              }
+                            },
+                          );
+                        } else {
+                          return Center(
+                              child: new Text(
+                            noReminder,
+                            style: TextStyle(fontSize: 18.0),
+                          ));
+                        }
+                      }),
+                  floatingActionButton: FloatingActionButton(
+                    onPressed: () {
+                      Navigator.push(
+                          context,
+                          SlideRightAnimation(
+                              widget: ReminderCreate(
+                            language: language,
+                          )));
+                    },
+                    backgroundColor: Theme.of(context).primaryColor,
+                    child: Icon(Icons.add),
+                  )),
+            );
           },
         );
       },

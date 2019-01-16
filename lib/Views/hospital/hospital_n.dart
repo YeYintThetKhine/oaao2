@@ -3,6 +3,7 @@ import 'package:firebase_database/firebase_database.dart';
 import '../../Models/hospital/clinic.dart';
 import 'hospitallist_n.dart';
 import '../../Animations/scale.dart';
+import 'package:connectivity/connectivity.dart';
 
 class Hospital extends StatefulWidget {
   final language;
@@ -25,6 +26,10 @@ class _HospitalState extends State<Hospital>
 
   Animation animation;
   AnimationController animationController;
+  var _connection;
+  var _conStatus = "Unknown";
+  Connectivity connectivity;
+  var subscription;
 
   _loadData() {
     DatabaseReference ref = FirebaseDatabase.instance.reference();
@@ -40,6 +45,25 @@ class _HospitalState extends State<Hospital>
         print(type);
         _loadCount();
       });
+    });
+  }
+
+  _checkConnection() {
+    connectivity = new Connectivity();
+    subscription =
+        connectivity.onConnectivityChanged.listen((ConnectivityResult result) {
+      if (result == ConnectivityResult.mobile ||
+          result == ConnectivityResult.wifi) {
+        setState(() {
+          _connection = true;
+          _loadData();
+        });
+      } else {
+        setState(() {
+          _connection = false;
+          _conStatus = "No Internet Connection!";
+        });
+      }
     });
   }
 
@@ -70,7 +94,6 @@ class _HospitalState extends State<Hospital>
   @override
   void initState() {
     super.initState();
-    print(language);
     animationController = AnimationController(
         vsync: this, duration: Duration(milliseconds: 1200));
     animation = Tween(begin: -1.0, end: 0.0).animate(CurvedAnimation(
@@ -78,14 +101,14 @@ class _HospitalState extends State<Hospital>
     animationController.forward();
 
     loading = true;
-    if (language == "mm") {
+    if (language == "Myanmar") {
       lan = "mm";
       title = "ဆေးရုံအမျိုးအစား";
     } else {
       lan = "en";
       title = "HOSPITAL TYPE";
     }
-    _loadData();
+    _checkConnection();
   }
 
   @override
@@ -99,60 +122,72 @@ class _HospitalState extends State<Hospital>
           style: TextStyle(color: Theme.of(context).textTheme.title.color),
         ),
       ),
-      body: typearr.length != category.length || loading
-          ? Center(
-              child: Container(
-                child: CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF72BB53)),
-                ),
+      body: Container(
+        child: _connection == false
+            ? Center(
+                child: Text(_conStatus),
+              )
+            : Container(
+                child: typearr.length != category.length || loading
+                    ? Center(
+                        child: Container(
+                          child: CircularProgressIndicator(
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                                Color(0xFF72BB53)),
+                          ),
+                        ),
+                      )
+                    : AnimatedBuilder(
+                        animation: animationController,
+                        builder: (BuildContext context, Widget widget) =>
+                            ListView.builder(
+                                itemCount: typearr.length,
+                                itemBuilder: (context, index) => Transform(
+                                    transform: Matrix4.translationValues(
+                                        animation.value *
+                                            MediaQuery.of(context).size.width,
+                                        0.0,
+                                        0.0),
+                                    child: Padding(
+                                      padding: EdgeInsets.only(
+                                          left: 4.0, right: 4.0),
+                                      child: Card(
+                                        elevation: 4.0,
+                                        child: ListTile(
+                                          title: Text(
+                                              category.elementAt(index).title,
+                                              style: TextStyle(
+                                                  color: Color(0xFF72BB53))),
+                                          trailing: CircleAvatar(
+                                            backgroundColor: Color(0xFF72BB53),
+                                            maxRadius: 13.6,
+                                            foregroundColor: Colors.white,
+                                            child: Text(category
+                                                .elementAt(index)
+                                                .count
+                                                .toString()),
+                                          ),
+                                          onTap: () {
+                                            if (category
+                                                    .elementAt(index)
+                                                    .count !=
+                                                0)
+                                              Navigator.push(
+                                                  context,
+                                                  ScaleRoute(
+                                                      widget: HospitalList(
+                                                    hostype: category
+                                                        .elementAt(index)
+                                                        .title
+                                                        .toString(),
+                                                    language: language,
+                                                  )));
+                                          },
+                                        ),
+                                      ),
+                                    )))),
               ),
-            )
-          : AnimatedBuilder(
-              animation: animationController,
-              builder: (BuildContext context, Widget widget) =>
-                  ListView.builder(
-                      itemCount: typearr.length,
-                      itemBuilder: (context, index) => Transform(
-                          transform: Matrix4.translationValues(
-                              animation.value *
-                                  MediaQuery.of(context).size.width,
-                              0.0,
-                              0.0),
-                          child: Padding(
-                            padding: EdgeInsets.only(left: 4.0, right: 4.0),
-                            child: Card(
-                              elevation: 4.0,
-                              child: ListTile(
-                                title: Text(category.elementAt(index).title,
-                                    style: TextStyle(color: Color(0xFF72BB53))),
-                                trailing: CircleAvatar(
-                                  backgroundColor: Color(0xFF72BB53),
-                                  maxRadius: 13.6,
-                                  foregroundColor: Colors.white,
-                                  child: Text(category
-                                      .elementAt(index)
-                                      .count
-                                      .toString()),
-                                ),
-                                onTap: () {
-                                  if (category.elementAt(index).count != 0)
-                                    Navigator.push(
-                                        context,
-                                        // MaterialPageRoute(
-                                        //   builder: (context)=>HospitalList(hostype: category.elementAt(index).title.toString(),)
-                                        // )
-                                        ScaleRoute(
-                                            widget: HospitalList(
-                                          hostype: category
-                                              .elementAt(index)
-                                              .title
-                                              .toString(),
-                                          language: language,
-                                        )));
-                                },
-                              ),
-                            ),
-                          )))),
+      ),
     );
   }
 }

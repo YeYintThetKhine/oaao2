@@ -1,5 +1,6 @@
 class Reminder {
   int remindID;
+  DateTime timeStamp;
   String remindDate;
   String remindTime;
   String remindType;
@@ -8,6 +9,7 @@ class Reminder {
 
   Reminder(
       {this.remindID,
+      this.timeStamp,
       this.remindDate,
       this.remindTime,
       this.remindType,

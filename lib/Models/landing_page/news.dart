@@ -1,7 +1,13 @@
 class News {
-  final String newsDate;
+  final DateTime newsDate;
+  final String date;
   final String newsTitle;
   final String newsContent;
   final String newsImg;
-  News({this.newsDate, this.newsTitle, this.newsContent, this.newsImg});
+  News(
+      {this.newsDate,
+      this.date,
+      this.newsTitle,
+      this.newsContent,
+      this.newsImg});
 }

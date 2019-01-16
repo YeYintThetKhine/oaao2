@@ -84,7 +84,7 @@ class _NewsPageState extends State<NewsPage> {
                                         padding: const EdgeInsets.only(
                                             left: 12.0, bottom: 6.0),
                                         child: Text(
-                                          news.newsDate,
+                                          news.date,
                                           style: TextStyle(
                                               fontSize: 16.0,
                                               color: Color(0xFF888888)),

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
 import '../../Models/doctor/doctor.dart';
 import '../../Views/doctor/doctor_detail.dart';
+import 'package:material_search/material_search.dart';
+import '../../Animations/slide_right_in.dart';
 
 class DocList extends StatefulWidget {
   final String docType;
@@ -16,11 +18,13 @@ class _DocListState extends State<DocList> {
   final String docType;
   final String language;
   _DocListState({this.docType, this.language});
+  List<String> docNames = [];
 
   Doctor doctor = new Doctor();
   List<Doctor> docList = <Doctor>[];
   var _isLoading = true;
   var _noData = false;
+  String searchName;
 
   @override
   void initState() {
@@ -48,6 +52,7 @@ class _DocListState extends State<DocList> {
               docEdu: docs[id]['education_$language'],
               docExp: docs[id]['experiences_$language']);
           docList.add(doctor);
+          docNames.add(docs[id]['name_$language']);
         }
       } else {
         _noData = true;
@@ -55,6 +60,56 @@ class _DocListState extends State<DocList> {
       setState(() {
         _isLoading = false;
       });
+    });
+  }
+
+  _buildMaterialSearchPage(BuildContext context) {
+    return new MaterialPageRoute<String>(
+        settings: new RouteSettings(
+          name: 'material_search',
+          isInitialRoute: false,
+        ),
+        builder: (BuildContext context) {
+          return new Material(
+            child: new MaterialSearch<String>(
+              iconColor: Theme.of(context).iconTheme.color,
+              barBackgroundColor: Theme.of(context).primaryColor,
+              placeholder: 'Search',
+              results: docNames
+                  .map((String v) => new MaterialSearchResult<String>(
+                        value: v,
+                        text: docNames.length > 0 ? "$v" : "No Medicine",
+                      ))
+                  .toList(),
+              filter: (dynamic value, String criteria) {
+                return value.toLowerCase().trim().contains(
+                    new RegExp(r'' + criteria.toLowerCase().trim() + ''));
+              },
+              onSelect: (dynamic value) => routeToDetailPage(value),
+              onSubmit: (String value) => routeToDetailPage(value),
+            ),
+          );
+        });
+  }
+
+  routeToDetailPage(String docName) {
+    for (Doctor doc in docList) {
+      if (docName == doc.docName) {
+        Navigator.push(
+            context,
+            SlideRightAnimation(
+                widget: DocDetail(
+              doctor: doc,
+            )));
+      }
+    }
+  }
+
+  _showMaterialSearch(BuildContext context) {
+    Navigator.of(context)
+        .push(_buildMaterialSearchPage(context))
+        .then((dynamic value) {
+      setState(() => searchName = value as String);
     });
   }
 
@@ -71,6 +126,14 @@ class _DocListState extends State<DocList> {
               docType,
               style: TextStyle(color: Theme.of(context).textTheme.title.color),
             ),
+            actions: <Widget>[
+              IconButton(
+                icon: Icon(Icons.search),
+                onPressed: () {
+                  _showMaterialSearch(context);
+                },
+              )
+            ],
           ),
           body: _isLoading
               ? Center(

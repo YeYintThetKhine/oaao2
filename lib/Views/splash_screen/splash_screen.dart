@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:flutter/animation.dart';
 import '../../Views/landing_page/home_screen.dart';
-import '../../Auth/auth.dart';
 
 class SplashScreen extends StatefulWidget {
   @override
@@ -31,10 +30,8 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   void navigationPage() {
-    Navigator.of(context).pushReplacement(MaterialPageRoute(
-        builder: (BuildContext context) => HomeScreen(
-              authFunction: Authentic(),
-            )));
+    Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (BuildContext context) => HomeScreen()));
   }
 
   @override

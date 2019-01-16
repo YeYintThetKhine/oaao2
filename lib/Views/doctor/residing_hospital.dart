@@ -5,70 +5,88 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong/latlong.dart';
 import 'package:firebase_database/firebase_database.dart';
 
-//Kaung Myat 2/8/2018
-//to show hospital details
-
-class HospitalDetail extends StatefulWidget {
-  final Clinic todisplay;
+class ResidingHospital extends StatefulWidget {
+  final String hospName;
+  final String hospType;
   final String lan;
-  HospitalDetail({@required this.todisplay, @required this.lan});
-  DetailsState createState() =>
-      DetailsState(details: todisplay, languagechoice: lan);
+  ResidingHospital(
+      {@required this.hospName, this.hospType, @required this.lan});
+  _ResidingHospitalState createState() => _ResidingHospitalState(
+      details: hospName, language: lan, hospType: hospType);
 }
 
-var facilitylist = [];
-var fb;
-var mail;
-var location;
-var ph;
-var fax;
-var site;
-String lan;
-
-class DetailsState extends State<HospitalDetail> {
-  String flist;
+class _ResidingHospitalState extends State<ResidingHospital> {
   var facilitylist = [];
+  var fb = "Facebook";
+  var mail = "Email";
+  var location = "Location";
+  var ph = "Phone";
+  var fax = "Fax";
+  var site = "Webiste";
+  String lan;
+  var _notFound = false;
+  var _isLoading = true;
+  String flist;
   Set<FacilityService> facility = new Set<FacilityService>();
   var coord = [];
-  final Clinic details;
-  final String languagechoice;
-  DetailsState({@required this.details, @required this.languagechoice});
+  Clinic hosp;
+  final String details;
+  final String language;
+  final String hospType;
+  _ResidingHospitalState(
+      {@required this.details, @required this.language, this.hospType});
 
-  /*_loadData() async {
-    String url = "https://api.myjson.com/bins/1gvbe4"; //My own API for testing. 
-    http.Response response = await http.get(url);
-    setState(() {
-      final membersJSON = json.decode(response.body);
-      for (var memberJSON in membersJSON) {
-        final member = new FacilityService(
-          id: memberJSON["id"],
-          clinicid: memberJSON["clinicid"],
-          clinicname: memberJSON["clinicname"],
-          servicename:memberJSON["servicename"] 
-        );
-        if (member.clinicname == details.name){
-          facility.add(member);
-        }
-      }
-    });
-  }*/
   _loadData() {
-    print("lan : " + lan);
-    print("lanchoice : " + languagechoice);
     DatabaseReference ref = FirebaseDatabase.instance.reference();
     ref
-        .child('facility')
-        .child(lan)
-        .child(details.name)
+        .child('hospitals')
+        .child(language)
+        .child(hospType)
+        .child(details)
         .once()
         .then((DataSnapshot snap) {
       var data = snap.value;
-      if (snap.value != null) {
-        FacilityService c = new FacilityService(
-          servicename: data['services'],
-        );
+      if (snap.value == null) {
         setState(() {
-          facility.add(c);
+          _notFound = true;
+          _isLoading = false;
+        });
+      } else {
+        hosp = Clinic(
+          clinicimg: data['img_$language'],
+          name: data['name_$language'],
+          location: data['location_$language'],
+          telephone: data['phone_$language'],
+          fax: data['fax_$language'],
+          email: data['email'],
+          website: data['website'],
+          facebook: data['facebook'],
+          type: data['type_$language'],
+          map: data['map'],
+        );
+        ref
+            .child('facility')
+            .child(language)
+            .child(details)
+            .once()
+            .then((DataSnapshot snap) {
+          var data = snap.value;
+          if (snap.value != null) {
+            FacilityService c = new FacilityService(
+              servicename: data['services'],
+            );
+            setState(() {
+              facility.add(c);
+              _isLoading = false;
+            });
+          }
+        });
+        setState(() {
+          String phnums = hosp.telephone;
+          phones = phnums.split(',');
+
+          String mapcoor = hosp.map;
+          coord = mapcoor.split(',');
         });
       }
     });
@@ -78,9 +96,8 @@ class DetailsState extends State<HospitalDetail> {
   @override
   void initState() {
     super.initState();
-    if (languagechoice == 'Myanmar') {
+    if (language == 'mm') {
       setState(() {
-        lan = 'mm';
         fb = "Facebook";
         mail = "Email";
         location = "တည်နေရာ";
@@ -90,7 +107,6 @@ class DetailsState extends State<HospitalDetail> {
       });
     } else {
       setState(() {
-        lan = 'en';
         fb = "Facebook";
         mail = "Email";
         location = "Location";
@@ -114,25 +130,49 @@ class DetailsState extends State<HospitalDetail> {
       }
     }
 
-    setState(() {
-      String phnums = details.telephone;
-      phones = phnums.split(',');
-    });
-
-    String mapcoor = details.map;
-    coord = mapcoor.split(',');
-
     return Hero(
-      tag: 'tx-${details.name}',
+      tag: 'Hospital',
       child: Scaffold(
-        body: CustomScrollView(
-          slivers: <Widget>[
-            _buildSilverAppBar(),
-            _detailinfo(),
-          ],
-        ),
-        //_facility()
-      ),
+          body: _isLoading == true
+              ? Container(
+                  child: Center(
+                    child: CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation(
+                          Theme.of(context).primaryColor),
+                    ),
+                  ),
+                )
+              : _notFound == false
+                  ? CustomScrollView(
+                      slivers: <Widget>[
+                        _buildSilverAppBar(),
+                        _detailinfo(),
+                      ],
+                    )
+                  : Container(
+                      alignment: Alignment.center,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 12.0),
+                            child: Text(
+                              "Not Available",
+                              style: TextStyle(fontSize: 18.0),
+                            ),
+                          ),
+                          FlatButton(
+                            child: Text("Back",
+                                style: TextStyle(color: Color(0xFFFFFFFF))),
+                            onPressed: () {
+                              Navigator.pop(context);
+                            },
+                            color: Theme.of(context).primaryColor,
+                          )
+                        ],
+                      ),
+                    )),
     );
   }
 
@@ -170,7 +210,7 @@ class DetailsState extends State<HospitalDetail> {
       alignment: Alignment.centerLeft,
       padding: EdgeInsets.only(top: 10.0, bottom: 10.0),
       child: Text(
-        languagechoice == 'Myanmar' ? 'ဝန်ဆောင်မှုများ' : 'Facility & Services',
+        language == 'mm' ? 'ဝန်ဆောင်မှုများ' : 'Facility & Services',
         style: TextStyle(
             fontSize: 16.0,
             fontWeight: FontWeight.bold,
@@ -218,7 +258,6 @@ class DetailsState extends State<HospitalDetail> {
 //A box to show facilites and services
   Widget _facility() {
     return Container(
-      //padding: EdgeInsets.only(left: 40.0, right: 40.0, bottom: 10.0),
       child: Container(child: _text()),
     );
   }
@@ -264,7 +303,7 @@ class DetailsState extends State<HospitalDetail> {
           fit: StackFit.expand,
           children: <Widget>[
             new Image.network(
-              details.clinicimg,
+              hosp.clinicimg,
               fit: BoxFit.cover,
               height: _appbarheight,
             ),
@@ -296,118 +335,20 @@ class DetailsState extends State<HospitalDetail> {
                     ListTile(
                       title: Container(
                         alignment: Alignment.center,
-                        //padding: EdgeInsets.only(top: 10.0, bottom: 5.0),
-
                         child: Text(
-                          details.name,
+                          hosp.name,
                           style: TextStyle(
                               fontSize: 25.0, color: Color(0xFF72BB53)),
                         ),
                       ),
                     ),
-                    /*Container(
-                      alignment: Alignment.center,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: <Widget>[
-                          Container(
-                            width: 100.0,
-                            alignment: Alignment.center,
-                            child: ListTile(
-                              title: new Padding(
-                                padding:
-                                    EdgeInsets.only(top: 10.0, bottom: 5.0),
-                                child: Icon(Icons.call),
-                              ),
-                              subtitle: Text(
-                                'Call',
-                                textAlign: TextAlign.center,
-                              ),
-                              onTap: () {
-                                Scaffold.of(context).showSnackBar(SnackBar(
-                                      content: Text('Launching Phone'),
-                                    )
-                                  );
-                                launch('tel:${details.telephone}');
-                              },
-                            ),
-                          ),
-                          Container(
-                            width: 100.0,
-                            child: ListTile(
-                                title: new Padding(
-                                  padding:
-                                      EdgeInsets.only(top: 10.0, bottom: 5.0),
-                                  child: Icon(Icons.place),
-                                ),
-                                subtitle: Text(
-                                  'Map',
-                                  textAlign: TextAlign.center,
-                                ),
-                                onTap: () {
-                                  showDialog(
-                                      context: context,
-                                      barrierDismissible: false,
-                                      builder: (BuildContext context) {
-                                        return new Container(
-                                          child: AlertDialog(
-                                            title: Text(
-                                                'Location of ${details.name}'),
-                                            content: SingleChildScrollView(
-                                                child: ListBody(
-                                              children: <Widget>[
-                                                new Container(
-                                                  child: new Container(
-                                                    width: 500.0,
-                                                    height: 300.0,
-                                                    child: showMap(),
-                                                  ),
-                                                )
-                                              ],
-                                            )),
-                                            actions: <Widget>[
-                                              FlatButton(
-                                                child: Text('CLOSE'),
-                                                onPressed: () {
-                                                  Navigator.of(context).pop();
-                                                },
-                                              )
-                                            ],
-                                          ),
-                                        );
-                                      });
-                                }),
-                          ),
-                          Container(
-                            width: 100.0,
-                            child: ListTile(
-                              title: new Padding(
-                                padding:
-                                    EdgeInsets.only(top: 10.0, bottom: 5.0),
-                                child: Icon(Icons.mail),
-                              ),
-                              subtitle: Text(
-                                'Mail',
-                                textAlign: TextAlign.center,
-                              ),
-                              onTap: () {
-                                Scaffold.of(context).showSnackBar(SnackBar(
-                                      content: Text('Launching Mail'),
-                                    ));
-                                launch('mailto:${details.email}');
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
-                     ),*/
                     Divider(),
                     ListTile(
                       leading: Icon(
                         Icons.place,
                         color: Color(0xFF72BB53),
                       ),
-                      title: Text(details.location),
+                      title: Text(hosp.location),
                       subtitle: Text(location,
                           style: TextStyle(color: Colors.green[300])),
                       onTap: () {
@@ -417,9 +358,10 @@ class DetailsState extends State<HospitalDetail> {
                             builder: (BuildContext context) {
                               return new Container(
                                 child: AlertDialog(
-                                  title: Text('Location of ${details.name}',
-                                      style:
-                                          TextStyle(color: Color(0xFF666666))),
+                                  title: Text(
+                                    'Location of ${hosp.name}',
+                                    style: TextStyle(color: Color(0xFF666666)),
+                                  ),
                                   content: SingleChildScrollView(
                                       child: ListBody(
                                     children: <Widget>[
@@ -448,7 +390,7 @@ class DetailsState extends State<HospitalDetail> {
                     Divider(),
                     ListTile(
                       leading: Icon(Icons.phone, color: Color(0xFF72BB53)),
-                      title: Text(details.telephone),
+                      title: Text(hosp.telephone),
                       subtitle:
                           Text(ph, style: TextStyle(color: Colors.green[300])),
                       onTap: () {
@@ -460,21 +402,21 @@ class DetailsState extends State<HospitalDetail> {
                     ),
                     ListTile(
                       leading: Icon(Icons.print, color: Color(0xFF72BB53)),
-                      title: Text(details.fax),
+                      title: Text(hosp.fax),
                       subtitle:
                           Text(fax, style: TextStyle(color: Colors.green[300])),
                     ),
                     Divider(),
                     ListTile(
                       leading: Icon(Icons.mail, color: Color(0xFF72BB53)),
-                      title: Text(details.email),
+                      title: Text(hosp.email),
                       subtitle: Text(mail,
                           style: TextStyle(color: Colors.green[300])),
                       onTap: () {
                         Scaffold.of(context).showSnackBar(SnackBar(
                           content: Text('Launching Mail'),
                         ));
-                        launch('mailto:${details.email}');
+                        launch('mailto:${hosp.email}');
                       },
                     ),
                     Divider(
@@ -484,14 +426,14 @@ class DetailsState extends State<HospitalDetail> {
                       leading: ImageIcon(
                           new AssetImage("assets/images/web.png"),
                           color: Color(0xFF72BB53)),
-                      title: Text(details.website),
+                      title: Text(hosp.website),
                       subtitle: Text(site,
                           style: TextStyle(color: Colors.green[300])),
                       onTap: () {
                         Scaffold.of(context).showSnackBar(SnackBar(
                           content: Text('Launching Browser'),
                         ));
-                        launch('https:${details.website}');
+                        launch('https:${hosp.website}');
                       },
                     ),
                     Divider(
@@ -500,14 +442,14 @@ class DetailsState extends State<HospitalDetail> {
                     ListTile(
                       leading: ImageIcon(new AssetImage("assets/images/fb.png"),
                           color: Color(0xFF72BB53)),
-                      title: Text(details.facebook),
+                      title: Text(hosp.facebook),
                       subtitle:
                           Text(fb, style: TextStyle(color: Colors.green[300])),
                       onTap: () {
                         Scaffold.of(context).showSnackBar(SnackBar(
                           content: Text('Launching Browser'),
                         ));
-                        launch('https:${details.facebook}');
+                        launch('https:${hosp.facebook}');
                       },
                     ),
                     Divider(),

@@ -52,7 +52,7 @@ class _HospitalListState extends State<HospitalList> {
   _loadReq() {
     hoslist.clear();
     String lan;
-    if (languagechoice == 'mm') {
+    if (languagechoice == 'Myanmar') {
       setState(() {
         lan = 'mm';
       });
@@ -112,6 +112,8 @@ class _HospitalListState extends State<HospitalList> {
         builder: (BuildContext context) {
           return new Material(
             child: new MaterialSearch<String>(
+              barBackgroundColor: Color(0xFF72BB53),
+              iconColor: Colors.white,
               placeholder: 'Search',
               results: names
                   .map((dynamic v) => MaterialSearchResult<String>(

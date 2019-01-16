@@ -10,6 +10,7 @@ import 'package:carousel_slider/carousel_slider.dart';
 import '../../Models/landing_page/news.dart';
 import '../../Views/notification/reminder.dart';
 import '../../Views/news/news.dart';
+import '../../Views/news/news_list.dart';
 import '../../Views/ask_chat/chat_room.dart';
 import '../../Database/database.dart';
 import '../../Models/notification/reminder.dart';
@@ -34,8 +35,7 @@ Future<List<Reminder>> reminderData() async {
 
 class HomeScreen extends StatefulWidget {
   final String language;
-  final AuthFunction authFunction;
-  HomeScreen({this.language, this.authFunction});
+  HomeScreen({this.language});
   @override
   _HomeScreenState createState() => _HomeScreenState(setLan: language);
 }
@@ -71,14 +71,8 @@ class _HomeScreenState extends State<HomeScreen>
   String menuNews = "News";
   String language = "en";
   double dynSize = 16.0;
-  var reminderList = [];
-  var appointList = [];
-  List<String> reminderSortedDate = [];
-  List<String> appointSortedDate = [];
-  List<String> reminderSortedTime = [];
-  List<String> appointSortedTime = [];
-  var dateTimeReminderList = [];
-  var dateTimeAppointList = [];
+  List<Reminder> reminderList = [];
+  List<Reminder> appointList = [];
   var reminderTitle = 'No Reminder';
   var reminderTime = '';
   var appointTitle = 'No Appointment';
@@ -86,7 +80,9 @@ class _HomeScreenState extends State<HomeScreen>
   var appointShowDate = '';
   var reminderShowDate = '';
   var scheduleDate = DateFormat("yyyy-MM-dd H:mm");
+  var newsDateFormat = DateFormat("dd MMM yyyy");
   var newsData = '';
+  var _viewAll = 'View All';
 
   _getNews() {
     dbRef.child('news').child(language).once().then((DataSnapshot dataSnap) {
@@ -99,12 +95,15 @@ class _HomeScreenState extends State<HomeScreen>
         var value = dataSnap.value;
         for (var key in keys) {
           var data = News(
-            newsDate: value[key]['date'],
+            newsDate: newsDateFormat.parse(value[key]['date']),
+            date: value[key]['date'],
             newsContent: value[key]['desc'],
             newsTitle: value[key]['heading'],
             newsImg: value[key]['img'],
           );
           newsList.add(data);
+          newsList.sort((a, b) => a.newsDate.compareTo(b.newsDate));
+          newsList = newsList.reversed.toList();
         }
         setState(() {
           _isLoading = true;
@@ -137,88 +136,61 @@ class _HomeScreenState extends State<HomeScreen>
       });
     }
     _fetchReminder();
-    _getNews();
   }
 
   _fetchReminder() {
     Future<List<Reminder>> remind = reminderData();
     remind.then((value) {
-      for (var item in value) {
-        if (item.remindType == "Reminder") {
-          reminderList.add(item);
-          var datenTime = item.remindDate + " " + item.remindTime;
-          dateTimeReminderList.add(scheduleDate.parse(datenTime));
+      for (var i = 0; i < value.length; i++) {
+        if (value[i].remindType == 'Reminder') {
+          var reminder = Reminder(
+            remindID: value[i].remindID,
+            timeStamp: scheduleDate
+                .parse(value[i].remindDate + " " + value[i].remindTime),
+            remindDate: value[i].remindDate,
+            remindTime: value[i].remindTime,
+            remindType: value[i].remindType,
+            remindAction: value[i].remindAction,
+            remindNote: value[i].remindNote,
+          );
+          reminderList.add(reminder);
         } else {
-          appointList.add(item);
-          var datenTime = item.remindDate + " " + item.remindTime;
-          dateTimeAppointList.add(scheduleDate.parse(datenTime));
+          var appointment = Reminder(
+            remindID: value[i].remindID,
+            timeStamp: scheduleDate
+                .parse(value[i].remindDate + " " + value[i].remindTime),
+            remindDate: value[i].remindDate,
+            remindTime: value[i].remindTime,
+            remindType: value[i].remindType,
+            remindAction: value[i].remindAction,
+            remindNote: value[i].remindNote,
+          );
+          appointList.add(appointment);
         }
       }
-      _sortnSplit(dateTimeReminderList, dateTimeAppointList);
-      _checkReminder(value);
-      _checkAppointment(value);
+      appointList.sort((a, b) => a.timeStamp.compareTo(b.timeStamp));
+      reminderList.sort((a, b) => a.timeStamp.compareTo(b.timeStamp));
+      for (var item in reminderList) {
+        if (item.timeStamp.compareTo(DateTime.now()) >= 0) {
+          setState(() {
+            reminderShowDate = item.remindDate;
+            reminderTime = item.remindTime;
+            reminderTitle = item.remindAction;
+          });
+          break;
+        }
+      }
+      for (var item in appointList) {
+        if (item.timeStamp.compareTo(DateTime.now()) >= 0) {
+          setState(() {
+            appointShowDate = item.remindDate;
+            appointTime = item.remindTime;
+            appointTitle = item.remindAction;
+          });
+          break;
+        }
+      }
     });
-  }
-
-  _checkReminder(List<Reminder> data) {
-    for (var i = 0; i < dateTimeReminderList.length; i++) {
-      if (dateTimeReminderList[i].compareTo(DateTime.now()) >= 0) {
-        for (var item in data) {
-          if (reminderSortedDate[i] == item.remindDate &&
-              reminderSortedTime[i] == item.remindTime) {
-            setState(() {
-              reminderShowDate = item.remindDate;
-              reminderTime = item.remindTime;
-              reminderTitle = item.remindAction;
-            });
-            break;
-          }
-        }
-        break;
-      }
-    }
-  }
-
-  _checkAppointment(List<Reminder> data) {
-    for (var i = 0; i < dateTimeAppointList.length; i++) {
-      if (dateTimeAppointList[i].compareTo(DateTime.now()) >= 0) {
-        for (var item in data) {
-          if (appointSortedDate[i] == item.remindDate &&
-              appointSortedTime[i] == item.remindTime) {
-            setState(() {
-              appointShowDate = item.remindDate;
-              appointTime = item.remindTime;
-              appointTitle = item.remindAction;
-            });
-            break;
-          }
-        }
-        break;
-      }
-    }
-  }
-
-  _sortnSplit(List reminderlist, List appointlist) {
-    dateTimeReminderList = reminderlist;
-    dateTimeAppointList = appointlist;
-    dateTimeReminderList.sort();
-    dateTimeAppointList.sort();
-    for (var item in dateTimeReminderList) {
-      reminderSortedDate
-          .add(item.toString().substring(0, item.toString().indexOf(" ")));
-    }
-    for (var item in dateTimeAppointList) {
-      appointSortedDate
-          .add(item.toString().substring(0, item.toString().indexOf(" ")));
-    }
-    for (var item in dateTimeReminderList) {
-      reminderSortedTime
-          .add(item.toString().substring(11, item.toString().lastIndexOf(":")));
-    }
-    for (var item in dateTimeAppointList) {
-      appointSortedTime
-          .add(item.toString().substring(11, item.toString().lastIndexOf(":")));
-    }
   }
 
   _languageChg(String lang) {
@@ -232,6 +204,7 @@ class _HomeScreenState extends State<HomeScreen>
           'အသိပညာ',
           'အမေးအဖြေ'
         ];
+        _viewAll = 'အားလုံးကြည့်ရန်';
         menuNews = "သတင်းများ";
         language = "mm";
         dynSize = 14.0;
@@ -249,6 +222,7 @@ class _HomeScreenState extends State<HomeScreen>
           'Knowledge',
           'Ask & Chat'
         ];
+        _viewAll = 'View All';
         menuNews = "News";
         language = "en";
         dynSize = 16.0;
@@ -291,8 +265,8 @@ class _HomeScreenState extends State<HomeScreen>
           context,
           SlideRightAnimation(
               widget: ProfileScreen(
-            lan: language,
             authFunction: Authentic(),
+            lan: language,
           )));
     } else if (name == "Doctors" || name == "ဆရာဝန်များ") {
       Navigator.push(
@@ -407,7 +381,7 @@ class _HomeScreenState extends State<HomeScreen>
               backgroundColor: Color(0xFF72bb53),
               centerTitle: true,
               title: Text(
-                "OAAO Health Care",
+                "OAAO Health Care".toUpperCase(),
                 style: TextStyle(color: Color(0xFFFFFFFF), fontSize: 20.0),
               ),
               actions: <Widget>[
@@ -550,12 +524,36 @@ class _HomeScreenState extends State<HomeScreen>
                                 margin:
                                     EdgeInsets.fromLTRB(16.0, 4.0, 16.0, 4.0),
                                 alignment: Alignment.centerLeft,
-                                child: Text(
-                                  menuNews,
-                                  style: TextStyle(
-                                      color: Color(0xFF333333),
-                                      fontSize: 24.0,
-                                      fontWeight: FontWeight.bold),
+                                child: ListTile(
+                                  contentPadding: EdgeInsets.all(0.0),
+                                  title: Text(
+                                    menuNews,
+                                    style: TextStyle(
+                                        color: Color(0xFF333333),
+                                        fontSize: 24.0,
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                  trailing: FlatButton(
+                                    shape: RoundedRectangleBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(5.0)),
+                                    color: Theme.of(context).primaryColor,
+                                    onPressed: () {
+                                      Navigator.push(
+                                          context,
+                                          SlideFromBottomAnimation(
+                                              widget: NewsList(
+                                            language: language,
+                                          )));
+                                    },
+                                    child: Text(
+                                      _viewAll,
+                                      style: TextStyle(
+                                          color: Color(0xFFFFFFFF),
+                                          fontSize:
+                                              language == 'mm' ? 14.0 : 16.0),
+                                    ),
+                                  ),
                                 ),
                               ),
                               Padding(
@@ -631,11 +629,10 @@ class _HomeScreenState extends State<HomeScreen>
                                                                     .end,
                                                             children: <Widget>[
                                                               Text(
-                                                                i.newsDate.substring(
+                                                                i.date.substring(
                                                                     0,
-                                                                    i.newsDate
-                                                                        .indexOf(
-                                                                            ' ')),
+                                                                    i.date.indexOf(
+                                                                        ' ')),
                                                                 style: TextStyle(
                                                                     color: Theme.of(
                                                                             context)
@@ -644,11 +641,10 @@ class _HomeScreenState extends State<HomeScreen>
                                                                         .color),
                                                               ),
                                                               Text(
-                                                                  i.newsDate.substring(
+                                                                  i.date.substring(
                                                                       3,
-                                                                      i.newsDate
-                                                                          .lastIndexOf(
-                                                                              ' ')),
+                                                                      i.date.lastIndexOf(
+                                                                          ' ')),
                                                                   style: TextStyle(
                                                                       color: Theme.of(
                                                                               context)

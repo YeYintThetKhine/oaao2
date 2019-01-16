@@ -88,7 +88,7 @@ class _LoginScreenState extends State<LoginScreen> {
           else{
             setState(() {
               _loading = false;
-              Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (BuildContext context) => HomeScreen(authFunction: Authentic(),)));
+              Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (BuildContext context) => HomeScreen()));
             });
           }
           } catch (e) {

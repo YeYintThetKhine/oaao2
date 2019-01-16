@@ -29,6 +29,7 @@ class _MedicineListState extends State<MedicineList> {
   List<Medicine> medList = <Medicine>[];
   List<String> medNames = <String>[];
   String searchName;
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
   void initState() {
@@ -64,29 +65,19 @@ class _MedicineListState extends State<MedicineList> {
           _isNull = true;
         });
       } else {
-        var medTypes = dataSnap.value.keys;
-        for (var type in medTypes) {
-          ref
-              .child('medicines')
-              .child(language)
-              .child(type)
-              .once()
-              .then((DataSnapshot snap) {
-            var keys = snap.value.keys;
-            var data = snap.value;
-            for (var key in keys) {
-              Medicine med = new Medicine(
-                medId: key,
-                medImg: data[key]['img_$language'],
-                medName: data[key]['name_$language'],
-                medType: data[key]['type_$language'],
-                medManuf: data[key]['manufacture_$language'],
-                medDesc: data[key]['description_$language'],
-              );
-              medList.add(med);
-              medNames.add(med.medName);
-            }
-          });
+        var keys = dataSnap.value.keys;
+        var data = dataSnap.value;
+        for (var key in keys) {
+          Medicine med = new Medicine(
+            medId: key,
+            medImg: data[key]['img_en'],
+            medName: data[key]['name_en'],
+            medType: data[key]['type_en'],
+            medManuf: data[key]['manufacture_en'],
+            medDesc: data[key]['description_en'],
+          );
+          medList.add(med);
+          medNames.add(med.medName);
         }
         setState(() {
           _isLoading = false;
@@ -102,7 +93,7 @@ class _MedicineListState extends State<MedicineList> {
           isInitialRoute: false,
         ),
         builder: (BuildContext context) {
-          return new Material(
+          return Material(
             child: new MaterialSearch<String>(
               iconColor: Theme.of(context).iconTheme.color,
               barBackgroundColor: Theme.of(context).primaryColor,
@@ -122,6 +113,18 @@ class _MedicineListState extends State<MedicineList> {
             ),
           );
         });
+  }
+
+  _showSnackbar() {
+    final snackBar = SnackBar(
+      backgroundColor: Theme.of(context).primaryColor,
+      content: Text(
+        "No Medicine to Search",
+        style: TextStyle(fontSize: 16.0),
+      ),
+      duration: Duration(seconds: 1),
+    );
+    _scaffoldKey.currentState.showSnackBar(snackBar);
   }
 
   routeToDetailPage(String medname) {
@@ -150,6 +153,7 @@ class _MedicineListState extends State<MedicineList> {
     return OrientationBuilder(
       builder: (context, orientation) {
         return Scaffold(
+            key: _scaffoldKey,
             appBar: AppBar(
               backgroundColor: Theme.of(context).primaryColor,
               title: Text(
@@ -162,7 +166,9 @@ class _MedicineListState extends State<MedicineList> {
                 IconButton(
                   icon: Icon(Icons.search),
                   onPressed: () {
-                    _showMaterialSearch(context);
+                    _isNull == true
+                        ? _showSnackbar()
+                        : _showMaterialSearch(context);
                   },
                 )
               ],
@@ -195,16 +201,7 @@ class _MedicineListState extends State<MedicineList> {
                               Theme.of(context).primaryColor),
                         ),
                       )
-                    : _isNull == true
-                        ? Center(
-                            child: Text(
-                              "No Medicines",
-                              style: TextStyle(
-                                  color: Theme.of(context).primaryColor,
-                                  fontSize: 20.0),
-                            ),
-                          )
-                        : Container());
+                    : Container());
       },
     );
   }

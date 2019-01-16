@@ -4,6 +4,7 @@ import '../../Views/landing_page/login_screen.dart';
 import 'package:firebase_database/firebase_database.dart';
 import '../../Models/ask_chat/chat.dart';
 import 'dart:async';
+import 'package:intl/intl.dart';
 
 class ChatRoom extends StatefulWidget {
   final String language;
@@ -31,12 +32,12 @@ class _ChatRoomState extends State<ChatRoom> with TickerProviderStateMixin {
   String userId = '';
   String email = '';
   List<Chat> chatList = <Chat>[];
-  List<Chat> reversedChatList = <Chat>[];
   Chat chat;
   DatabaseReference dbRef = FirebaseDatabase.instance.reference();
   StreamSubscription<Event> msgSubscription;
   String notSignedIn = 'You are not signed in!';
   String login = 'Login';
+  var dateTimeFormat = DateFormat("yyyy-MM-d H:mm");
 
   @override
   void initState() {
@@ -87,14 +88,15 @@ class _ChatRoomState extends State<ChatRoom> with TickerProviderStateMixin {
                 chat = new Chat(
                   email: data[id]['email'],
                   postDate: data[id]['postDate'],
+                  timeStamp: dateTimeFormat.parse(data[id]['postDate']),
                   text: data[id]['text'],
                   reply: data[id]['reply'],
                 );
                 chatList.add(chat);
+                chatList.sort((a, b) => a.timeStamp.compareTo(b.timeStamp));
               }
-              reversedChatList = chatList.reversed.toList();
             }
-            _showChatBox(reversedChatList);
+            _showChatBox(chatList);
           });
         });
       }

@@ -21,8 +21,7 @@ class _ShowImagesState extends State<ShowImages> {
         body: Stack(
       children: <Widget>[
         PhotoView(
-          minScale: 0.4,
-          maxScale: 5.0,
+          maxScale: 3.0,
           imageProvider: MemoryImage(imgdata),
         ),
         InkWell(

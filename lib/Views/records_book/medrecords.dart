@@ -1,27 +1,19 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:oaao/Views/records_book/profiles.dart';
+import 'dart:typed_data' show Uint8List;
 import 'package:oaao/Database/database.dart';
 import 'package:oaao/Views/records_book/meddetail.dart';
-import '../../Models/records_book/record_book.dart';
+import 'package:oaao/Models/records_book/record_book.dart';
 import 'package:multi_image_picker/asset.dart';
 import 'package:multi_image_picker/multi_image_picker.dart';
 import 'package:flutter/services.dart';
-import '../records_book/image_preview.dart';
 import 'package:random_string/random_string.dart' as random;
 
 class MedRec extends StatefulWidget {
   final int id;
   MedRec({@required this.id});
   MedRecState createState() => MedRecState(userid: id);
-}
-
-int uid;
-
-Future<List<Records>> fetchrecordsFromDatabase() async {
-  var dbHelper = DBHelper();
-  Future<List<Records>> records = dbHelper.fetchRecordsList(uid);
-  return records;
 }
 
 const timeout = const Duration(milliseconds: 100);
@@ -35,9 +27,17 @@ String tday = date.day.toString();
 String tmonth = date.month.toString();
 String tyear = date.year.toString();
 var _visible = true;
-List<Asset> images = List<Asset>();
+List<Uint8List> images = List();
 
 class MedRecState extends State<MedRec> with SingleTickerProviderStateMixin {
+  String order = "DESC";
+  Future<List<Records>> fetchrecordsFromDatabase() async {
+    var dbHelper = DBHelper();
+    Future<List<Records>> records =
+        dbHelper.fetchRecordsList(userid: userid, order: order);
+    return records;
+  }
+
   var formKey = GlobalKey<FormState>();
   final int userid;
   MedRecState({@required this.userid});
@@ -62,15 +62,16 @@ class MedRecState extends State<MedRec> with SingleTickerProviderStateMixin {
       dbhelper.addRecord(rec);
       print(
           "User added + rec id ${rec.recid}/user id ${rec.userid}/doc ${rec.doctor}/ hos ${rec.hospital}/pro ${rec.problem}/date ${rec.date}");
-      for (Asset asset in images) {
+      for (Uint8List imgData in images) {
         var recImg = ImageData();
         recImg.userid = userid;
         recImg.recid = recid;
-        recImg.imgData = asset.imageData.buffer.asUint8List();
+        recImg.imgData = imgData;
         dbhelper.addImages(recImg);
       }
       setState(() {
         recid = random.randomAlphaNumeric(15);
+        add = true;
       });
       return true;
     } else {
@@ -95,24 +96,45 @@ class MedRecState extends State<MedRec> with SingleTickerProviderStateMixin {
                             alignment: Alignment.topLeft,
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.max,
                               children: <Widget>[
-                                Text('Date : ${snapshot.data[index].date}',
-                                    style: TextStyle(color: Colors.green)),
-                                Text('Doctor : ${snapshot.data[index].doctor}',
-                                    style: TextStyle(color: Colors.green)),
-                                Text(
-                                    'Hospital : ${snapshot.data[index].hospital}',
-                                    style: TextStyle(color: Colors.green)),
-                                Text(
-                                    'Problem : ${snapshot.data[index].problem}',
-                                    style: TextStyle(color: Colors.green)),
+                                Container(
+                                  padding: EdgeInsets.all(4.0),
+                                  child: Text(
+                                      'Date : ${snapshot.data[index].date}',
+                                      style: TextStyle(color: Colors.green)),
+                                ),
+                                Container(
+                                  padding: EdgeInsets.all(4.0),
+                                  child: Text(
+                                      'Doctor : ${snapshot.data[index].doctor}',
+                                      style: TextStyle(color: Colors.green)),
+                                ),
+                                Container(
+                                  padding: EdgeInsets.all(4.0),
+                                  child: Text(
+                                      'Hospital : ${snapshot.data[index].hospital}',
+                                      style: TextStyle(color: Colors.green)),
+                                ),
+                                snapshot.data[index].problem.length <= 30
+                                    ? Container(
+                                        padding: EdgeInsets.all(4.0),
+                                        child: Text(
+                                            'Problem : ${snapshot.data[index].problem}',
+                                            style:
+                                                TextStyle(color: Colors.green)))
+                                    : Container(
+                                        padding: EdgeInsets.all(4.0),
+                                        child: Text(
+                                            'Problem : ${snapshot.data[index].problem.substring(1, 25)}....',
+                                            style: TextStyle(
+                                                color: Colors.green))),
                               ],
                             ),
                           ),
                           /*trailing: IconButton(
               icon: Icon(Icons.)
             ),*/
-                          subtitle: Text(snapshot.data.length.toString()),
                           onTap: () {
                             Navigator.push(
                                 context,
@@ -125,12 +147,13 @@ class MedRecState extends State<MedRec> with SingleTickerProviderStateMixin {
                   ),
             )
           : Column(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
                 Center(
                   child: Container(
                     width: 150.0,
                     height: 150.0,
-                    child: Image.asset('images/test.png'),
+                    child: Text('No medical records yet'),
                   ),
                 )
               ],
@@ -152,27 +175,25 @@ class MedRecState extends State<MedRec> with SingleTickerProviderStateMixin {
     _controller = new AnimationController(
         duration: const Duration(milliseconds: 100), value: 0.0, vsync: this);
     setState(() {
-      uid = userid;
       recid = random.randomAlphaNumeric(15);
     });
   }
 
-  double gridheight = 20.0;
+  double gridheight;
   Future<void> loadAssets() async {
-    setState(() {
-      images = List<Asset>();
-    });
-
+    List<Asset> img = List();
     List resultList;
-    String error;
+    setState(() {
+      img = List();
+    });
 
     try {
       resultList = await MultiImagePicker.pickImages(
-        maxImages: 10,
+        maxImages: 300,
         enableCamera: false,
       );
     } on PlatformException catch (e) {
-      error = e.message;
+      print(e.message);
     }
 
     // If the widget was removed from the tree while the asynchronous platform
@@ -181,15 +202,14 @@ class MedRecState extends State<MedRec> with SingleTickerProviderStateMixin {
     if (!mounted) return;
 
     setState(() {
-      images = resultList;
-      if (resultList.length == 0) {
-        gridheight = 20;
-      } else if (resultList.length < 4) {
-        gridheight = 150.0;
-      } else {
-        gridheight = 300.0;
-      }
+      img = resultList;
     });
+    for (Asset asset in img) {
+      await asset.requestOriginal(quality: 20);
+      setState(() {
+        images.add(asset.imageData.buffer.asUint8List());
+      });
+    }
   }
 
   @override
@@ -197,6 +217,10 @@ class MedRecState extends State<MedRec> with SingleTickerProviderStateMixin {
     super.dispose();
 
     _controller.dispose();
+    doc.clear();
+    hos.clear();
+    pro.clear();
+    images.clear();
   }
 
   bool add = true;
@@ -211,12 +235,33 @@ class MedRecState extends State<MedRec> with SingleTickerProviderStateMixin {
           "MEDICAL RECORDS",
           style: TextStyle(color: Colors.white),
         ),
+        actions: <Widget>[
+          IconButton(
+            tooltip:
+                order == "DESC" ? 'Sort: Newest First' : 'Sort: Oldest First',
+            icon: Icon(Icons.sort),
+            onPressed: () {
+              setState(() {
+                if (order == "DESC") {
+                  order = "ASC";
+                } else {
+                  order = "DESC";
+                }
+              });
+            },
+          )
+        ],
       ),
       floatingActionButton: _visible
           ? FloatingActionButton(
-              backgroundColor: Colors.redAccent,
+              backgroundColor: add ? Colors.white : Colors.red,
               tooltip: 'Create Medical Record',
-              child: Icon(add ? Icons.add : Icons.close),
+              child: add
+                  ? Icon(
+                      Icons.add,
+                      color: Colors.green,
+                    )
+                  : Icon(Icons.close),
               onPressed: () {
                 _controller.fling(velocity: _isPanelVisible ? -1.0 : 1.0);
                 setState(() {
@@ -225,9 +270,18 @@ class MedRecState extends State<MedRec> with SingleTickerProviderStateMixin {
                   } else {
                     add = true;
                   }
-                  images = List<Asset>();
-                  gridheight = 20.0;
+                  if (images.length == 0) {
+                    gridheight = 20;
+                  } else if (images.length < 4) {
+                    gridheight = 150.0;
+                  } else {
+                    gridheight = 300.0;
+                  }
+                  FocusScope.of(context).requestFocus(new FocusNode());
                 });
+                scrlcont.animateTo(0.0,
+                    duration: const Duration(milliseconds: 10),
+                    curve: Curves.easeOut);
               },
             )
           : null,
@@ -253,6 +307,10 @@ class MedRecState extends State<MedRec> with SingleTickerProviderStateMixin {
     pro.clear();
     scrlcont.animateTo(0.0,
         duration: const Duration(milliseconds: 10), curve: Curves.easeOut);
+    _controller.fling(velocity: _isPanelVisible ? -1.0 : 1.0);
+    setState(() {
+      images = List();
+    });
   }
 
   bool get _isPanelVisible {
@@ -261,35 +319,42 @@ class MedRecState extends State<MedRec> with SingleTickerProviderStateMixin {
         status == AnimationStatus.forward;
   }
 
+  // Widget buildGridView() {
+  //   return Container(
+  //     child: GridView.builder(
+  //       gridDelegate:
+  //           SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3),
+  //       itemCount: images.length,
+  //       itemBuilder: (context, index) => Container(
+  //             child: AssetView(index, images[index]),
+  //           ),
+  //     ),
+  //   );
+  // }
   Widget buildGridView() {
     return Container(
-      //    child:GridView.count(
-      //   crossAxisCount: 3,
-      //   children: List.generate(images.length, (index) {
-      //     // return InkWell(
-      //     //   child:Container(
-      //     //     child:AssetView(index, images[index]),
-      //     //   ),
-      //     //   onTap: (){
-      //     //     Navigator.of(context).push(
-      //     //             MaterialPageRoute(
-      //     //               builder: (context)=>ShowImages(i:index,imgdata: images[index].imageData.buffer.asUint8List(),
-      //     //               )
-      //     //             )
-      //     //           );
-      //     //   },
-      //     // );
-      //     return Container(
-      //         child:AssetView(index, images[index]),
-      //       );
-      //   }),
-      // )
+      height: images.length < 4 ? 150 : 280,
       child: GridView.builder(
         gridDelegate:
             SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3),
         itemCount: images.length,
-        itemBuilder: (context, index) => Container(
-              child: AssetView(index, images[index]),
+        itemBuilder: (context, index) => GridTile(
+              header: IconButton(
+                alignment: Alignment.topRight,
+                icon: Icon(
+                  Icons.cancel,
+                  color: Colors.red,
+                ),
+                onPressed: () {
+                  setState(() {
+                    images.removeAt(index);
+                  });
+                },
+              ),
+              child: Image.memory(
+                images[index],
+                fit: BoxFit.cover,
+              ),
             ),
       ),
     );
@@ -334,30 +399,34 @@ class MedRecState extends State<MedRec> with SingleTickerProviderStateMixin {
                             child: Column(
                               children: <Widget>[
                                 Container(
-                                  padding:
-                                      EdgeInsets.only(top: 8.0, bottom: 8.0),
-                                  child: TextFormField(
-                                    decoration: InputDecoration(
-                                      labelStyle:
-                                          TextStyle(color: Color(0xFF1487de)),
-                                      counterText: 'Doctor name',
-                                      border: OutlineInputBorder(),
-                                      labelText: 'DOCTOR',
-                                    ),
-                                    validator: (val) => val.isEmpty
-                                        ? "Doctor name is required"
-                                        : null,
-                                    onSaved: (val) => this.doctor = val,
-                                    onEditingComplete: () {
-                                      FocusScope.of(context)
-                                          .requestFocus(hospitalNode);
-                                    },
-                                  ),
-                                ),
+                                    padding:
+                                        EdgeInsets.only(top: 8.0, bottom: 8.0),
+                                    child: Align(
+                                      alignment: Alignment.centerLeft,
+                                      child: TextFormField(
+                                        controller: doc,
+                                        decoration: InputDecoration(
+                                          labelStyle: TextStyle(
+                                              color: Color(0xFF1487de)),
+                                          counterText: 'Doctor name',
+                                          border: OutlineInputBorder(),
+                                          labelText: 'DOCTOR',
+                                        ),
+                                        validator: (val) => val.isEmpty
+                                            ? "Doctor name is required"
+                                            : null,
+                                        onSaved: (val) => this.doctor = val,
+                                        onEditingComplete: () {
+                                          FocusScope.of(context)
+                                              .requestFocus(hospitalNode);
+                                        },
+                                      ),
+                                    )),
                                 Container(
                                   padding:
                                       EdgeInsets.only(top: 8.0, bottom: 8.0),
                                   child: TextFormField(
+                                    controller: hos,
                                     decoration: InputDecoration(
                                         labelStyle:
                                             TextStyle(color: Color(0xFF1487de)),
@@ -378,6 +447,7 @@ class MedRecState extends State<MedRec> with SingleTickerProviderStateMixin {
                                   padding:
                                       EdgeInsets.only(top: 8.0, bottom: 8.0),
                                   child: TextFormField(
+                                    controller: pro,
                                     decoration: InputDecoration(
                                         labelStyle:
                                             TextStyle(color: Color(0xFF1487de)),
@@ -410,29 +480,54 @@ class MedRecState extends State<MedRec> with SingleTickerProviderStateMixin {
                               onPressed: loadAssets,
                             )),
                         Container(
-                          height: gridheight,
-                          padding:
-                              EdgeInsets.only(left: 8.0, right: 8.0, top: 8.0),
-                          child: buildGridView(),
-                        ),
-                        Container(
-                            width: buttonwidth,
-                            child: RaisedButton(
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(16.0)),
-                              color: Color(0xFF6dff6e),
-                              child: Text(
-                                'Save',
-                                style: TextStyle(
-                                    color: Colors.white, fontSize: 16.0),
-                              ),
-                              onPressed: () {
-                                // print(images[0].imageData.toString());
-                                print(recid);
-                                _submit();
-                                print(recid);
-                              },
-                            ))
+                            padding: EdgeInsets.only(
+                                left: 8.0, right: 8.0, top: 8.0),
+                            child: images.length != 0 ? buildGridView() : null),
+                        Padding(
+                          child: Container(
+                              width: buttonwidth,
+                              child: RaisedButton(
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(16.0)),
+                                color: Color(0xFF72BB53),
+                                child: Text(
+                                  'Save',
+                                  style: TextStyle(
+                                      color: Colors.white, fontSize: 16.0),
+                                ),
+                                onPressed: () {
+                                  if (_submit() == true) {
+                                    showDialog(
+                                      context: context,
+                                      builder: (context) => AlertDialog(
+                                            shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(
+                                                        16.0)),
+                                            content: Container(
+                                                height: 0.0,
+                                                child: Text(
+                                                  'Record successfully created',
+                                                  style: TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.bold),
+                                                )),
+                                            actions: <Widget>[
+                                              FlatButton(
+                                                child: Text('Close'),
+                                                onPressed: () {
+                                                  Navigator.pop(context);
+                                                },
+                                              )
+                                            ],
+                                          ),
+                                    );
+                                    _reset();
+                                  }
+                                },
+                              )),
+                          padding: EdgeInsets.only(bottom: 16.0),
+                        )
                       ],
                     ),
                   ),

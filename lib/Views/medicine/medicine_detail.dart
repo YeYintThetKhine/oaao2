@@ -99,21 +99,6 @@ class _MedicineDetailState extends State<MedicineDetail> {
                                         ListTile(
                                           title: Padding(
                                             padding: EdgeInsets.only(
-                                                top: 5.0, bottom: 5.0),
-                                            child: Text(
-                                              medicine.medType,
-                                              style: TextStyle(fontSize: 18.0),
-                                            ),
-                                          ),
-                                          subtitle: Text(
-                                            "Type",
-                                            style: TextStyle(fontSize: 16.0),
-                                          ),
-                                        ),
-                                        Divider(),
-                                        ListTile(
-                                          title: Padding(
-                                            padding: EdgeInsets.only(
                                                 top: 10.0, bottom: 5.0),
                                             child: Text(
                                               "manufacture".toUpperCase(),

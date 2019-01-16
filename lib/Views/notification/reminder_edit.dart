@@ -127,211 +127,224 @@ class _ReminderEditState extends State<ReminderEdit> {
     }
   }
 
+  Future<bool> _backHomeScreen() {
+    return Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+            builder: (BuildContext context) => ReminderList(
+                  language: language,
+                )));
+  }
+
   @override
   Widget build(BuildContext context) {
-    return OrientationBuilder(
-      builder: (context, orientation) {
-        return Scaffold(
-          key: _scaffoldKey,
-          appBar: AppBar(
-            automaticallyImplyLeading: false,
-            leading: IconButton(
-              icon: Icon(Icons.arrow_back),
-              onPressed: () {
-                Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => ReminderList(
-                              language: language,
-                            )));
-              },
+    return WillPopScope(
+      onWillPop: _backHomeScreen,
+      child: OrientationBuilder(
+        builder: (context, orientation) {
+          return Scaffold(
+            key: _scaffoldKey,
+            appBar: AppBar(
+              automaticallyImplyLeading: false,
+              leading: IconButton(
+                icon: Icon(Icons.arrow_back),
+                onPressed: () {
+                  Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => ReminderList(
+                                language: language,
+                              )));
+                },
+              ),
+              backgroundColor: Theme.of(context).primaryColor,
+              title: Text(
+                appTitle,
+                style:
+                    TextStyle(color: Theme.of(context).textTheme.title.color),
+              ),
+              iconTheme: Theme.of(context).iconTheme,
             ),
-            backgroundColor: Theme.of(context).primaryColor,
-            title: Text(
-              appTitle,
-              style: TextStyle(color: Theme.of(context).textTheme.title.color),
-            ),
-            iconTheme: Theme.of(context).iconTheme,
-          ),
-          body: Form(
-            key: reminderFormKey,
-            child: ListView(children: <Widget>[
-              Padding(
-                padding:
-                    const EdgeInsets.only(top: 16.0, left: 16.0, right: 16.0),
-                child: DateTimePickerFormField(
-                  initialValue: date,
-                  onSaved: (value) => date = value,
-                  validator: (value) => value == null ? 'Choose Date' : null,
-                  dateOnly: true,
-                  style:
-                      TextStyle(color: Theme.of(context).textTheme.title.color),
-                  format: dateFormat,
-                  decoration: InputDecoration(
-                      filled: true,
-                      hasFloatingPlaceholder: false,
-                      fillColor: Theme.of(context).primaryColor,
-                      border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10.0)),
-                      labelText: 'Date',
-                      labelStyle: TextStyle(
-                          color: Theme.of(context).textTheme.title.color),
-                      prefixIcon: Icon(
-                        Icons.calendar_today,
-                        color: Theme.of(context).textTheme.title.color,
-                      )),
-                  onChanged: (dt) => setState(() => date = dt),
+            body: Form(
+              key: reminderFormKey,
+              child: ListView(children: <Widget>[
+                Padding(
+                  padding:
+                      const EdgeInsets.only(top: 16.0, left: 16.0, right: 16.0),
+                  child: DateTimePickerFormField(
+                    initialValue: date,
+                    onSaved: (value) => date = value,
+                    validator: (value) => value == null ? 'Choose Date' : null,
+                    dateOnly: true,
+                    style: TextStyle(
+                        color: Theme.of(context).textTheme.title.color),
+                    format: dateFormat,
+                    decoration: InputDecoration(
+                        filled: true,
+                        hasFloatingPlaceholder: false,
+                        fillColor: Theme.of(context).primaryColor,
+                        border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10.0)),
+                        labelText: 'Date',
+                        labelStyle: TextStyle(
+                            color: Theme.of(context).textTheme.title.color),
+                        prefixIcon: Icon(
+                          Icons.calendar_today,
+                          color: Theme.of(context).textTheme.title.color,
+                        )),
+                    onChanged: (dt) => setState(() => date = dt),
+                  ),
                 ),
-              ),
-              Padding(
-                padding:
-                    const EdgeInsets.only(top: 16.0, left: 16.0, right: 16.0),
-                child: TimePickerFormField(
-                  initialValue: time,
-                  validator: (value) => value == null ? 'Choose Time' : null,
-                  onSaved: (value) => time = value,
-                  style:
-                      TextStyle(color: Theme.of(context).textTheme.title.color),
-                  format: timeFormat,
-                  decoration: InputDecoration(
-                      filled: true,
-                      hasFloatingPlaceholder: false,
-                      fillColor: Theme.of(context).primaryColor,
-                      border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10.0)),
-                      labelText: 'Time',
-                      labelStyle: TextStyle(
-                          color: Theme.of(context).textTheme.title.color),
-                      prefixIcon: Icon(
-                        Icons.timer,
-                        color: Theme.of(context).textTheme.title.color,
-                      )),
-                  onChanged: (dt) => setState(() => time = dt),
+                Padding(
+                  padding:
+                      const EdgeInsets.only(top: 16.0, left: 16.0, right: 16.0),
+                  child: TimePickerFormField(
+                    initialValue: time,
+                    validator: (value) => value == null ? 'Choose Time' : null,
+                    onSaved: (value) => time = value,
+                    style: TextStyle(
+                        color: Theme.of(context).textTheme.title.color),
+                    format: timeFormat,
+                    decoration: InputDecoration(
+                        filled: true,
+                        hasFloatingPlaceholder: false,
+                        fillColor: Theme.of(context).primaryColor,
+                        border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10.0)),
+                        labelText: 'Time',
+                        labelStyle: TextStyle(
+                            color: Theme.of(context).textTheme.title.color),
+                        prefixIcon: Icon(
+                          Icons.timer,
+                          color: Theme.of(context).textTheme.title.color,
+                        )),
+                    onChanged: (dt) => setState(() => time = dt),
+                  ),
                 ),
-              ),
-              SizedBox(height: 16.0),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: <Widget>[
-                  Container(
-                    child: Radio(
-                      activeColor: Theme.of(context).primaryColor,
-                      value: 'Reminder',
-                      groupValue: reminderValue,
-                      onChanged: radioValueChg,
+                SizedBox(height: 16.0),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: <Widget>[
+                    Container(
+                      child: Radio(
+                        activeColor: Theme.of(context).primaryColor,
+                        value: 'Reminder',
+                        groupValue: reminderValue,
+                        onChanged: radioValueChg,
+                      ),
                     ),
-                  ),
-                  Container(
-                    child: Text(
-                      'Reminder',
-                      style: TextStyle(
-                          color: Theme.of(context).primaryColor,
-                          fontSize: 18.0),
+                    Container(
+                      child: Text(
+                        'Reminder',
+                        style: TextStyle(
+                            color: Theme.of(context).primaryColor,
+                            fontSize: 18.0),
+                      ),
                     ),
-                  ),
-                  Container(
-                    child: Radio(
-                      activeColor: Theme.of(context).primaryColor,
-                      value: 'Appointment',
-                      groupValue: reminderValue,
-                      onChanged: radioValueChg,
+                    Container(
+                      child: Radio(
+                        activeColor: Theme.of(context).primaryColor,
+                        value: 'Appointment',
+                        groupValue: reminderValue,
+                        onChanged: radioValueChg,
+                      ),
                     ),
-                  ),
-                  Container(
-                    child: Text(
-                      'Appointment',
-                      style: TextStyle(
-                          color: Theme.of(context).primaryColor,
-                          fontSize: 18.0),
+                    Container(
+                      child: Text(
+                        'Appointment',
+                        style: TextStyle(
+                            color: Theme.of(context).primaryColor,
+                            fontSize: 18.0),
+                      ),
                     ),
-                  ),
-                ],
-              ),
-              Container(
-                padding:
-                    const EdgeInsets.only(left: 16.0, right: 16.0, bottom: 8.0),
-                child: Text(
-                  "Action",
-                  style: TextStyle(fontSize: 18.0),
+                  ],
                 ),
-              ),
-              Padding(
-                padding:
-                    const EdgeInsets.only(left: 16.0, right: 16.0, bottom: 8.0),
-                child: TextFormField(
-                  controller: actionController,
-                  validator: (value) =>
-                      value.length == 0 ? 'Action is required!' : null,
-                  style: TextStyle(
-                      color: Theme.of(context).textTheme.title.color,
-                      fontSize: 18.0),
-                  decoration: InputDecoration(
-                    contentPadding: EdgeInsets.all(12.0),
-                    filled: true,
-                    hasFloatingPlaceholder: false,
-                    fillColor: Theme.of(context).primaryColor,
-                    border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10.0)),
-                  ),
-                ),
-              ),
-              Container(
-                margin: EdgeInsets.only(left: 6.0),
-                padding:
-                    const EdgeInsets.only(left: 16.0, right: 16.0, bottom: 8.0),
-                child: Text(
-                  "Note",
-                  style: TextStyle(fontSize: 18.0),
-                ),
-              ),
-              Padding(
-                padding:
-                    const EdgeInsets.only(left: 16.0, right: 16.0, bottom: 8.0),
-                child: TextFormField(
-                  maxLength: 100,
-                  controller: noteController,
-                  validator: (value) => noteController.text.length == 0
-                      ? 'Note is required!'
-                      : null,
-                  style: TextStyle(
-                      color: Theme.of(context).textTheme.title.color,
-                      fontSize: 18.0),
-                  decoration: InputDecoration(
-                    contentPadding: EdgeInsets.all(12.0),
-                    filled: true,
-                    hasFloatingPlaceholder: false,
-                    fillColor: Theme.of(context).primaryColor,
-                    border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10.0)),
-                  ),
-                  maxLines: 8,
-                  keyboardType: TextInputType.multiline,
-                ),
-              ),
-              Container(
-                margin: EdgeInsets.symmetric(vertical: 8.0),
-                padding:
-                    const EdgeInsets.only(left: 16.0, right: 16.0, bottom: 8.0),
-                child: RaisedButton(
-                  padding: EdgeInsets.symmetric(vertical: 12.0),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10.0)),
-                  color: Theme.of(context).primaryColor,
-                  onPressed: () {
-                    _updateReminder(reminder.remindID);
-                  },
+                Container(
+                  padding: const EdgeInsets.only(
+                      left: 16.0, right: 16.0, bottom: 8.0),
                   child: Text(
-                    "Update",
+                    "Action",
+                    style: TextStyle(fontSize: 18.0),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(
+                      left: 16.0, right: 16.0, bottom: 8.0),
+                  child: TextFormField(
+                    controller: actionController,
+                    validator: (value) =>
+                        value.length == 0 ? 'Action is required!' : null,
                     style: TextStyle(
                         color: Theme.of(context).textTheme.title.color,
-                        fontSize: 16.0),
+                        fontSize: 18.0),
+                    decoration: InputDecoration(
+                      contentPadding: EdgeInsets.all(12.0),
+                      filled: true,
+                      hasFloatingPlaceholder: false,
+                      fillColor: Theme.of(context).primaryColor,
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10.0)),
+                    ),
                   ),
                 ),
-              )
-            ]),
-          ),
-        );
-      },
+                Container(
+                  margin: EdgeInsets.only(left: 6.0),
+                  padding: const EdgeInsets.only(
+                      left: 16.0, right: 16.0, bottom: 8.0),
+                  child: Text(
+                    "Note",
+                    style: TextStyle(fontSize: 18.0),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(
+                      left: 16.0, right: 16.0, bottom: 8.0),
+                  child: TextFormField(
+                    maxLength: 100,
+                    controller: noteController,
+                    validator: (value) => noteController.text.length == 0
+                        ? 'Note is required!'
+                        : null,
+                    style: TextStyle(
+                        color: Theme.of(context).textTheme.title.color,
+                        fontSize: 18.0),
+                    decoration: InputDecoration(
+                      contentPadding: EdgeInsets.all(12.0),
+                      filled: true,
+                      hasFloatingPlaceholder: false,
+                      fillColor: Theme.of(context).primaryColor,
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10.0)),
+                    ),
+                    maxLines: 8,
+                    keyboardType: TextInputType.multiline,
+                  ),
+                ),
+                Container(
+                  margin: EdgeInsets.symmetric(vertical: 8.0),
+                  padding: const EdgeInsets.only(
+                      left: 16.0, right: 16.0, bottom: 8.0),
+                  child: RaisedButton(
+                    padding: EdgeInsets.symmetric(vertical: 12.0),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10.0)),
+                    color: Theme.of(context).primaryColor,
+                    onPressed: () {
+                      _updateReminder(reminder.remindID);
+                    },
+                    child: Text(
+                      "Update",
+                      style: TextStyle(
+                          color: Theme.of(context).textTheme.title.color,
+                          fontSize: 16.0),
+                    ),
+                  ),
+                )
+              ]),
+            ),
+          );
+        },
+      ),
     );
   }
 }
