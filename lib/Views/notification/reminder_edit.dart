@@ -8,6 +8,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'dart:typed_data';
 import 'dart:ui';
 import '../../Views/notification/reminder.dart';
+import '../../Views/splash_screen/splash_screen.dart';
 
 class ReminderEdit extends StatefulWidget {
   final Reminder reminder;
@@ -68,7 +69,8 @@ class _ReminderEditState extends State<ReminderEdit> {
     if (payload != null) {
       debugPrint('notification payload: ' + payload);
     }
-    await Navigator.popAndPushNamed(context, '/HomeScreen');
+    await Navigator.pushReplacement(context,
+        MaterialPageRoute(builder: (BuildContext context) => SplashScreen()));
   }
 
   Future _alert(String alert, String title, String note) async {
