@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:flutter/animation.dart';
 import '../../Views/landing_page/home_screen.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 class SplashScreen extends StatefulWidget {
   @override
@@ -12,6 +13,7 @@ class _SplashScreenState extends State<SplashScreen>
     with SingleTickerProviderStateMixin {
   Animation splashLogoAnimation, splashTextAnimation;
   AnimationController animationController;
+  var flutterLocalNotificationsPlugin = new FlutterLocalNotificationsPlugin();
 
   @override
   void initState() {
@@ -21,7 +23,22 @@ class _SplashScreenState extends State<SplashScreen>
         CurvedAnimation(parent: animationController, curve: Curves.elasticOut));
     animationController.forward();
     super.initState();
+    var initializationSettingsAndroid =
+        new AndroidInitializationSettings('launcher_icon');
+    var initializationSettingsIOS = new IOSInitializationSettings();
+    var initializationSettings = new InitializationSettings(
+        initializationSettingsAndroid, initializationSettingsIOS);
+    flutterLocalNotificationsPlugin.initialize(initializationSettings,
+        onSelectNotification: onSelectNotification);
     startTime();
+  }
+
+  Future onSelectNotification(String payload) async {
+    if (payload != null) {
+      debugPrint('notification payload: ' + payload);
+      await Navigator.pushReplacement(context,
+          MaterialPageRoute(builder: (BuildContext context) => HomeScreen()));
+    }
   }
 
   startTime() async {

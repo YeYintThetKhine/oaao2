@@ -7,7 +7,6 @@ import '../../Models/notification/reminder.dart';
 import 'package:intl/intl.dart';
 import 'reminder_edit.dart';
 import '../../Views/landing_page/home_screen.dart';
-import '../../Auth/auth.dart';
 
 class ReminderSettingEN {
   static const String edit = 'Edit';

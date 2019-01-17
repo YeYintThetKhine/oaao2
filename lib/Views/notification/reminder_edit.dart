@@ -8,7 +8,6 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'dart:typed_data';
 import 'dart:ui';
 import '../../Views/notification/reminder.dart';
-import '../../Views/splash_screen/splash_screen.dart';
 
 class ReminderEdit extends StatefulWidget {
   final Reminder reminder;
@@ -53,8 +52,7 @@ class _ReminderEditState extends State<ReminderEdit> {
     var initializationSettingsIOS = new IOSInitializationSettings();
     var initializationSettings = new InitializationSettings(
         initializationSettingsAndroid, initializationSettingsIOS);
-    flutterLocalNotificationsPlugin.initialize(initializationSettings,
-        onSelectNotification: onSelectNotification);
+    flutterLocalNotificationsPlugin.initialize(initializationSettings);
   }
 
   _setLanguage(String lan) {
@@ -63,14 +61,6 @@ class _ReminderEditState extends State<ReminderEdit> {
         appTitle = "သတိပေးပြုပြင်ရန်";
       });
     }
-  }
-
-  Future onSelectNotification(String payload) async {
-    if (payload != null) {
-      debugPrint('notification payload: ' + payload);
-    }
-    await Navigator.pushReplacement(context,
-        MaterialPageRoute(builder: (BuildContext context) => SplashScreen()));
   }
 
   Future _alert(String alert, String title, String note) async {
