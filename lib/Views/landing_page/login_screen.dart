@@ -209,7 +209,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 delegate: SliverChildBuilderDelegate(
                   (context, index) => Container(
                         alignment: Alignment.center,
-                        height: device.height - 24 - kToolbarHeight,
+                        height: orientation == Orientation.portrait ? device.height - 24 - kToolbarHeight : device.height - 24 - kToolbarHeight + 150,
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: <Widget>[

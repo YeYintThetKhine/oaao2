@@ -70,11 +70,11 @@ class _MedicineListState extends State<MedicineList> {
         for (var key in keys) {
           Medicine med = new Medicine(
             medId: key,
-            medImg: data[key]['img_en'],
-            medName: data[key]['name_en'],
-            medType: data[key]['type_en'],
-            medManuf: data[key]['manufacture_en'],
-            medDesc: data[key]['description_en'],
+            medImg: data[key]['img_$language'],
+            medName: data[key]['name_$language'],
+            medType: data[key]['type_$language'],
+            medManuf: data[key]['manufacture_$language'],
+            medDesc: data[key]['description_$language'],
           );
           medList.add(med);
           medNames.add(med.medName);

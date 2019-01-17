@@ -76,7 +76,13 @@ class _NewsListState extends State<NewsList> {
             body: _isLoading == false
                 ? GridView.count(
                     crossAxisCount: 2,
-                    childAspectRatio: (device.width / 2) / (actualHeight / 4),
+                    childAspectRatio: device.height > 600 &&
+                            orientation == Orientation.portrait
+                        ? (device.width / 2) / (actualHeight / 4)
+                        : device.height < 600 &&
+                                orientation == Orientation.portrait
+                            ? (device.width / 2) / (actualHeight / 3)
+                            : (device.width / 2) / (actualHeight / 2),
                     children: List.generate(newsList.length, (index) {
                       return Stack(
                           alignment: Alignment.bottomCenter,
@@ -100,7 +106,14 @@ class _NewsListState extends State<NewsList> {
                                 },
                                 child: Container(
                                   width: device.width / 2 - 12,
-                                  height: actualHeight / 4 - 12,
+                                  height: device.height > 600 &&
+                                          orientation == Orientation.portrait
+                                      ? actualHeight / 4 - 12
+                                      : device.height < 600 &&
+                                              orientation ==
+                                                  Orientation.portrait
+                                          ? actualHeight / 3 - 12
+                                          : actualHeight / 2 - 12,
                                   child: ClipRRect(
                                       borderRadius: BorderRadius.circular(5.0),
                                       child: Image.network(
@@ -120,7 +133,13 @@ class _NewsListState extends State<NewsList> {
                                     bottomLeft: Radius.circular(5.0),
                                     bottomRight: Radius.circular(5.0)),
                               ),
-                              height: (actualHeight / 4 - 12) / 2,
+                              height: device.height > 600 &&
+                                      orientation == Orientation.portrait
+                                  ? (actualHeight / 4 - 12) / 2
+                                  : device.height < 600 &&
+                                          orientation == Orientation.portrait
+                                      ? (actualHeight / 3 - 12) / 2
+                                      : (actualHeight / 2 - 12) / 2,
                               child: FlatButton(
                                 padding: EdgeInsets.all(0.0),
                                 onPressed: () {
@@ -144,12 +163,20 @@ class _NewsListState extends State<NewsList> {
                                       child: Text(
                                         newsList[index].newsTitle,
                                         textAlign: TextAlign.center,
-                                        maxLines: 2,
+                                        maxLines:
+                                            orientation == Orientation.landscape
+                                                ? 1
+                                                : 2,
                                         overflow: TextOverflow.clip,
                                         style: TextStyle(
                                             color: Color(0xFFFFFFFF),
-                                            fontSize:
-                                                language == 'en' ? 16.0 : 12.0),
+                                            fontSize: language == 'en' &&
+                                                    device.height < 600
+                                                ? 14.0
+                                                : language == 'en' &&
+                                                        device.height > 600
+                                                    ? 16.0
+                                                    : 12.0),
                                       ),
                                     ),
                                     Container(

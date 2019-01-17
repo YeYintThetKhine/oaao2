@@ -209,17 +209,19 @@ class _ReminderListState extends State<ReminderList> {
       showDialog(
           context: context,
           builder: (BuildContext context) {
+            var device = MediaQuery.of(context).size;
             return AlertDialog(
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10.0)),
-              title: Text(
-                delBoxTitle,
-                style: TextStyle(color: Theme.of(context).primaryColor),
-              ),
+              title: Text(delBoxTitle,
+                  style: TextStyle(
+                    color: Color(0xFF333333),
+                  )),
               content: Text(
                 delBoxText,
                 style: TextStyle(
-                    color: Theme.of(context).primaryColor, fontSize: 18.0),
+                    color: Color(0xFF333333),
+                    fontSize: device.height > 600 ? 18.0 : 14.0),
               ),
               actions: <Widget>[
                 FlatButton(
@@ -234,7 +236,8 @@ class _ReminderListState extends State<ReminderList> {
                   child: Text(
                     delBoxYes,
                     style: TextStyle(
-                        color: Theme.of(context).primaryColor, fontSize: 18.0),
+                        color: Color(0xFF333333),
+                        fontSize: device.height > 600 ? 18.0 : 14.0),
                   ),
                 ),
                 FlatButton(
@@ -244,7 +247,8 @@ class _ReminderListState extends State<ReminderList> {
                   child: Text(
                     delBoxNo,
                     style: TextStyle(
-                        color: Theme.of(context).primaryColor, fontSize: 18.0),
+                        color: Color(0xFF333333),
+                        fontSize: device.height > 600 ? 18.0 : 14.0),
                   ),
                 )
               ],

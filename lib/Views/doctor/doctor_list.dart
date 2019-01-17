@@ -99,6 +99,7 @@ class _DocListState extends State<DocList> {
             context,
             SlideRightAnimation(
                 widget: DocDetail(
+              language: language,
               doctor: doc,
             )));
       }
@@ -202,11 +203,17 @@ class _DocListState extends State<DocList> {
                                               kToolbarHeight -
                                               12.0) /
                                           2
-                                      : (device.height -
-                                              12 -
-                                              kToolbarHeight -
-                                              12.0) /
-                                          4,
+                                      : device.height < 600
+                                          ? (device.height -
+                                                  12 -
+                                                  kToolbarHeight -
+                                                  12.0) /
+                                              3.4
+                                          : (device.height -
+                                                  12 -
+                                                  kToolbarHeight -
+                                                  12.0) /
+                                              4,
                                   margin: EdgeInsets.only(top: 75.0),
                                   decoration: BoxDecoration(
                                       color: Theme.of(context)

@@ -65,8 +65,8 @@ class _KnowledgeMainPageState extends State<KnowledgeMainPage> {
   _setLanguage(String lang) {
     if (lang == 'mm') {
       setState(() {
-        careProcedure = 'စောင့်ရှောက်မှုလုပ်ထုံးလုပ်နည်း';
-        emergencyProcedure = 'အရေးပေါ်လုပ်ထုံးလုပ်နည်း';
+        careProcedure = 'စောင့်ရှောက်မှု';
+        emergencyProcedure = 'အရေးပေါ်ကုသမှု';
         lifeStyle = 'လူနေမှု';
         articles = 'ကျန်းမာရေးဆောင်းပါး';
         sizeFont = 14.0;
@@ -88,6 +88,7 @@ class _KnowledgeMainPageState extends State<KnowledgeMainPage> {
     var device = MediaQuery.of(context).size;
     var btnHeight = ((device.height - 24 - kToolbarHeight) / 4);
     var btnHeightLand = ((device.height - 24 - kToolbarHeight) / 2.5);
+    var btnHeightLandxs = ((device.height - 24 - kToolbarHeight) / 2);
     return OrientationBuilder(
       builder: (context, orientation) {
         return Scaffold(
@@ -106,9 +107,13 @@ class _KnowledgeMainPageState extends State<KnowledgeMainPage> {
                   delegate: SliverChildBuilderDelegate(
                     (context, i) => Column(children: <Widget>[
                           SizedBox(
-                            height: orientation == Orientation.landscape
+                            height: orientation == Orientation.landscape &&
+                                    device.height > 600
                                 ? btnHeightLand
-                                : btnHeight,
+                                : orientation == Orientation.landscape &&
+                                        device.height < 600
+                                    ? btnHeightLandxs
+                                    : btnHeight,
                             child: Container(
                               margin: EdgeInsets.fromLTRB(12.0, 8.0, 12.0, 8.0),
                               child: Row(
@@ -384,6 +389,7 @@ class _KnowledgeMainPageState extends State<KnowledgeMainPage> {
                                                         ArticlesDetail(
                                                           article:
                                                               articlesList[i],
+                                                          language: language,
                                                         )));
                                           },
                                           child: SizedBox(

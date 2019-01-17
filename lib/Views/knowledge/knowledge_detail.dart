@@ -2,15 +2,18 @@ import 'package:flutter/material.dart';
 import '../../Models/knowledge/articles.dart';
 
 class ArticlesDetail extends StatefulWidget {
+  final String language;
   final Articles article;
-  ArticlesDetail({this.article});
+  ArticlesDetail({this.article, this.language});
   @override
-  _ArticlesDetailState createState() => _ArticlesDetailState(article: article);
+  _ArticlesDetailState createState() =>
+      _ArticlesDetailState(article: article, language: language);
 }
 
 class _ArticlesDetailState extends State<ArticlesDetail> {
   final Articles article;
-  _ArticlesDetailState({this.article});
+  final String language;
+  _ArticlesDetailState({this.article, this.language});
   @override
   Widget build(BuildContext context) {
     var device = MediaQuery.of(context).size;
@@ -20,7 +23,7 @@ class _ArticlesDetailState extends State<ArticlesDetail> {
           appBar: AppBar(
             iconTheme: Theme.of(context).iconTheme,
             title: Text(
-              "Article",
+              language == 'mm' ? "ဆောင်းပါး" : 'Article',
               style: TextStyle(color: Theme.of(context).textTheme.title.color),
             ),
             backgroundColor: Theme.of(context).primaryColor,

@@ -101,7 +101,7 @@ class _HospitalState extends State<Hospital>
     animationController.forward();
 
     loading = true;
-    if (language == "Myanmar") {
+    if (language == "mm") {
       lan = "mm";
       title = "ဆေးရုံအမျိုးအစား";
     } else {

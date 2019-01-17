@@ -52,7 +52,7 @@ class _HospitalListState extends State<HospitalList> {
   _loadReq() {
     hoslist.clear();
     String lan;
-    if (languagechoice == 'Myanmar') {
+    if (languagechoice == 'mm') {
       setState(() {
         lan = 'mm';
       });
