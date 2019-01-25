@@ -23,13 +23,32 @@ class _DocDetailState extends State<DocDetail> {
   List<String> eduList = [];
   ResidingClinic residingClinic;
   List<ResidingClinic> schedules = <ResidingClinic>[];
+  var _residingClinic = true;
   var _isLoading = false;
+  var name = 'Name';
+  var specialist = 'Specialist';
+  var edu = 'Education';
+  var exp = 'Experiences';
+  var residing = 'Residing Clinic';
 
   @override
   void initState() {
     super.initState();
+    _setLanguage(language);
     _split();
     _fetchResidingClinic();
+  }
+
+  _setLanguage(String lan) {
+    if (lan == 'mm') {
+      setState(() {
+        name = 'နာမည်';
+        specialist = 'အထူးကု';
+        edu = 'ပညာရေး';
+        exp = 'အတွေ့အကြုံ';
+        residing = 'ထိုင်သောဆေးရုံများ';
+      });
+    }
   }
 
   _split() {
@@ -45,19 +64,26 @@ class _DocDetailState extends State<DocDetail> {
         .child(doctor.docId)
         .once()
         .then((DataSnapshot residingSnap) {
-      var residingKeys = residingSnap.value.keys;
-      var residingData = residingSnap.value;
-      for (var key in residingKeys) {
-        residingClinic = new ResidingClinic(
-            hospital: key,
-            schedule: residingData[key]['schedule'],
-            type: residingData[key]['type'],
-            phone: residingData[key]['phone']);
-        schedules.add(residingClinic);
+      if (residingSnap.value == null) {
+        setState(() {
+          _isLoading = false;
+          _residingClinic = false;
+        });
+      } else {
+        var residingKeys = residingSnap.value.keys;
+        var residingData = residingSnap.value;
+        for (var key in residingKeys) {
+          residingClinic = new ResidingClinic(
+              hospital: key,
+              schedule: residingData[key]['schedule'],
+              type: residingData[key]['type'],
+              phone: residingData[key]['phone']);
+          schedules.add(residingClinic);
+        }
+        setState(() {
+          _isLoading = false;
+        });
       }
-      setState(() {
-        _isLoading = false;
-      });
     });
   }
 
@@ -166,7 +192,7 @@ class _DocDetailState extends State<DocDetail> {
                                         padding:
                                             const EdgeInsets.only(bottom: 8.0),
                                         child: Text(
-                                          "Name",
+                                          name,
                                           style: TextStyle(
                                               fontSize: 20.0,
                                               color: Theme.of(context)
@@ -196,7 +222,7 @@ class _DocDetailState extends State<DocDetail> {
                                         padding:
                                             const EdgeInsets.only(bottom: 8.0),
                                         child: Text(
-                                          "Specialist",
+                                          specialist,
                                           style: TextStyle(
                                               fontSize: 20.0,
                                               color: Theme.of(context)
@@ -225,7 +251,7 @@ class _DocDetailState extends State<DocDetail> {
                                         padding:
                                             const EdgeInsets.only(bottom: 8.0),
                                         child: Text(
-                                          "Education",
+                                          edu,
                                           style: TextStyle(
                                               fontSize: 20.0,
                                               color: Theme.of(context)
@@ -250,7 +276,7 @@ class _DocDetailState extends State<DocDetail> {
                                         padding:
                                             const EdgeInsets.only(bottom: 8.0),
                                         child: Text(
-                                          "Experiences",
+                                          exp,
                                           style: TextStyle(
                                               fontSize: 20.0,
                                               color: Theme.of(context)
@@ -280,7 +306,7 @@ class _DocDetailState extends State<DocDetail> {
                                               top: 12.0,
                                               bottom: 12.0),
                                           child: Text(
-                                            "Residing Clinics",
+                                            residing,
                                             style: TextStyle(
                                                 color: Theme.of(context)
                                                     .textTheme
@@ -301,125 +327,138 @@ class _DocDetailState extends State<DocDetail> {
                                                               .color),
                                                 ),
                                               )
-                                            : Container(
-                                                height: language == 'mm'
-                                                    ? 375.0
-                                                    : 325.0,
-                                                child: ListView.builder(
-                                                  itemCount: schedules.length,
-                                                  scrollDirection:
-                                                      Axis.horizontal,
-                                                  itemBuilder: (context, i) {
-                                                    return Container(
-                                                      width: orientation ==
-                                                              Orientation
-                                                                  .landscape
-                                                          ? device.width / 2 -
-                                                              25.0
-                                                          : device.width - 50.0,
-                                                      child: new Card(
-                                                        elevation: 1.2,
-                                                        child: new Column(
-                                                          mainAxisSize:
-                                                              MainAxisSize.min,
-                                                          children: <Widget>[
-                                                            ListTile(
-                                                                title: Padding(
-                                                                  padding:
-                                                                      EdgeInsets
+                                            : _residingClinic == false
+                                                ? Container(
+                                                    margin: EdgeInsets.only(
+                                                        left: 16.0,
+                                                        top: 12.0,
+                                                        bottom: 12.0),
+                                                    child: Text(
+                                                      language == 'mm'
+                                                          ? 'မရှိပါ'
+                                                          : 'No Residing Clinic',
+                                                      style: TextStyle(
+                                                          fontSize: 16.0,
+                                                          color: Colors.white),
+                                                    ),
+                                                  )
+                                                : Container(
+                                                    height: language == 'mm'
+                                                        ? 375.0
+                                                        : 325.0,
+                                                    child: ListView.builder(
+                                                      itemCount:
+                                                          schedules.length,
+                                                      scrollDirection:
+                                                          Axis.horizontal,
+                                                      itemBuilder:
+                                                          (context, i) {
+                                                        return Container(
+                                                          width: orientation ==
+                                                                  Orientation
+                                                                      .landscape
+                                                              ? device.width /
+                                                                      2 -
+                                                                  25.0
+                                                              : device.width -
+                                                                  50.0,
+                                                          child: new Card(
+                                                            elevation: 1.2,
+                                                            child: new Column(
+                                                              mainAxisSize:
+                                                                  MainAxisSize
+                                                                      .min,
+                                                              children: <
+                                                                  Widget>[
+                                                                ListTile(
+                                                                    title:
+                                                                        Padding(
+                                                                      padding: EdgeInsets
                                                                           .only(
                                                                               top: 8.0),
-                                                                  child: Text(
-                                                                    schedules[i]
-                                                                        .hospital,
-                                                                    style: TextStyle(
-                                                                        fontSize: language ==
-                                                                                'mm'
-                                                                            ? 15.0
-                                                                            : 18.0),
-                                                                  ),
-                                                                ),
-                                                                subtitle:
-                                                                    Padding(
-                                                                  padding:
-                                                                      EdgeInsets
+                                                                      child:
+                                                                          Text(
+                                                                        schedules[i]
+                                                                            .hospital,
+                                                                        style: TextStyle(
+                                                                            fontSize: language == 'mm'
+                                                                                ? 15.0
+                                                                                : 18.0),
+                                                                      ),
+                                                                    ),
+                                                                    subtitle:
+                                                                        Padding(
+                                                                      padding: EdgeInsets
                                                                           .only(
                                                                               top: 8.0),
-                                                                  child: _scheduleWidgets(
-                                                                      schedules[
+                                                                      child: _scheduleWidgets(schedules[
                                                                               i]
                                                                           .schedule
                                                                           .split(
                                                                               ',')),
-                                                                )),
-                                                            new ButtonTheme.bar(
-                                                              buttonColor: Theme
-                                                                      .of(context)
-                                                                  .primaryColor,
-                                                              child:
-                                                                  new ButtonBar(
-                                                                alignment:
-                                                                    MainAxisAlignment
-                                                                        .start,
-                                                                children: <
-                                                                    Widget>[
-                                                                  new RaisedButton(
-                                                                    child: Text(
-                                                                      "View Hospital",
-                                                                      style: TextStyle(
-                                                                          color:
-                                                                              Colors.white),
-                                                                    ),
-                                                                    onPressed:
-                                                                        () {
-                                                                      Navigator.push(
-                                                                          context,
-                                                                          MaterialPageRoute(
-                                                                              builder: (context) => ResidingHospital(
-                                                                                    hospName: schedules[i].hospital,
-                                                                                    lan: language,
-                                                                                    hospType: schedules[i].type,
-                                                                                  )));
-                                                                    },
-                                                                  ),
-                                                                  new RaisedButton(
-                                                                      child:
-                                                                          Text(
-                                                                        "Make Appointment",
-                                                                        style: TextStyle(
-                                                                            color:
-                                                                                Colors.white),
+                                                                    )),
+                                                                new ButtonTheme
+                                                                    .bar(
+                                                                  buttonColor: Theme.of(
+                                                                          context)
+                                                                      .primaryColor,
+                                                                  child:
+                                                                      new ButtonBar(
+                                                                    alignment:
+                                                                        MainAxisAlignment
+                                                                            .start,
+                                                                    children: <
+                                                                        Widget>[
+                                                                      new RaisedButton(
+                                                                        child:
+                                                                            Text(
+                                                                          "View Hospital",
+                                                                          style:
+                                                                              TextStyle(color: Colors.white),
+                                                                        ),
+                                                                        onPressed:
+                                                                            () {
+                                                                          Navigator.push(
+                                                                              context,
+                                                                              MaterialPageRoute(
+                                                                                  builder: (context) => ResidingHospital(
+                                                                                        hospName: schedules[i].hospital,
+                                                                                        lan: language,
+                                                                                        hospType: schedules[i].type,
+                                                                                      )));
+                                                                        },
                                                                       ),
-                                                                      onPressed:
-                                                                          () {
-                                                                        var appointPh =
-                                                                            schedules[i].phone;
-                                                                        if (appointPh ==
-                                                                                null ||
-                                                                            appointPh ==
-                                                                                'Nil') {
-                                                                          final snackBar =
-                                                                              SnackBar(
-                                                                            content:
-                                                                                Text('Unavailable!'),
-                                                                          );
-                                                                          Scaffold.of(context)
-                                                                              .showSnackBar(snackBar);
-                                                                        } else {
-                                                                          launch(
-                                                                              'tel:$appointPh');
-                                                                        }
-                                                                      }),
-                                                                ],
-                                                              ),
+                                                                      new RaisedButton(
+                                                                          child:
+                                                                              Text(
+                                                                            "Make Appointment",
+                                                                            style:
+                                                                                TextStyle(color: Colors.white),
+                                                                          ),
+                                                                          onPressed:
+                                                                              () {
+                                                                            var appointPh =
+                                                                                schedules[i].phone;
+                                                                            if (appointPh == null ||
+                                                                                appointPh == 'Nil') {
+                                                                              final snackBar = SnackBar(
+                                                                                content: Text('Unavailable!'),
+                                                                              );
+                                                                              Scaffold.of(context).showSnackBar(snackBar);
+                                                                            } else {
+                                                                              launch('tel:$appointPh');
+                                                                            }
+                                                                          }),
+                                                                    ],
+                                                                  ),
+                                                                ),
+                                                              ],
                                                             ),
-                                                          ],
-                                                        ),
-                                                      ),
-                                                    );
-                                                  },
-                                                ),
-                                              )
+                                                          ),
+                                                        );
+                                                      },
+                                                    ),
+                                                  )
                                       ],
                                     ),
                                   ],

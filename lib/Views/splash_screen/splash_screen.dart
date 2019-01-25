@@ -3,8 +3,11 @@ import 'dart:async';
 import 'package:flutter/animation.dart';
 import '../../Views/landing_page/home_screen.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import '../../Auth/auth.dart';
 
 class SplashScreen extends StatefulWidget {
+  final AuthFunction authFunction;
+  SplashScreen({this.authFunction});
   @override
   _SplashScreenState createState() => _SplashScreenState();
 }
@@ -36,8 +39,12 @@ class _SplashScreenState extends State<SplashScreen>
   Future onSelectNotification(String payload) async {
     if (payload != null) {
       debugPrint('notification payload: ' + payload);
-      await Navigator.pushReplacement(context,
-          MaterialPageRoute(builder: (BuildContext context) => HomeScreen()));
+      await Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+              builder: (BuildContext context) => HomeScreen(
+                    authFunction: Authentic(),
+                  )));
     }
   }
 
@@ -47,8 +54,10 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   void navigationPage() {
-    Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (BuildContext context) => HomeScreen()));
+    Navigator.of(context).pushReplacement(MaterialPageRoute(
+        builder: (BuildContext context) => HomeScreen(
+              authFunction: Authentic(),
+            )));
   }
 
   @override

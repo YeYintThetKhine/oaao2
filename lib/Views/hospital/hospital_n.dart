@@ -41,8 +41,10 @@ class _HospitalState extends State<Hospital>
         .then((DataSnapshot snap) {
       setState(() {
         type = snap.value;
-        typearr = type.split(',');
-        print(type);
+        var list = type.split(',');
+        for (String item in list) {
+          typearr.add(item.trim());
+        }
         _loadCount();
       });
     });

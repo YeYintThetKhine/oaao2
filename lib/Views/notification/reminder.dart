@@ -7,6 +7,7 @@ import '../../Models/notification/reminder.dart';
 import 'package:intl/intl.dart';
 import 'reminder_edit.dart';
 import '../../Views/landing_page/home_screen.dart';
+import '../../Auth/auth.dart';
 
 class ReminderSettingEN {
   static const String edit = 'Edit';
@@ -231,7 +232,12 @@ class _ReminderListState extends State<ReminderList> {
                       dh.deleteReminder(reminder.id);
                       remind = reminderData();
                     });
-                    Navigator.popAndPushNamed(context, "/ReminderList");
+                    Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                            builder: (BuildContext context) => ReminderList(
+                                  language: language,
+                                )));
                   },
                   child: Text(
                     delBoxYes,
@@ -294,6 +300,7 @@ class _ReminderListState extends State<ReminderList> {
                             MaterialPageRoute(
                                 builder: (context) => HomeScreen(
                                       language: language,
+                                      authFunction: Authentic(),
                                     )));
                       },
                     ),

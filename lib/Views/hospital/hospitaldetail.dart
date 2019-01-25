@@ -55,14 +55,16 @@ class DetailsState extends State<HospitalDetail> {
   _loadData() {
     print("lan : " + lan);
     print("lanchoice : " + languagechoice);
+    print(details.name);
     DatabaseReference ref = FirebaseDatabase.instance.reference();
     ref
         .child('facility')
-        .child(lan)
+        .child(languagechoice)
         .child(details.name)
         .once()
         .then((DataSnapshot snap) {
       var data = snap.value;
+      print(data);
       if (snap.value != null) {
         FacilityService c = new FacilityService(
           servicename: data['services'],
@@ -78,7 +80,7 @@ class DetailsState extends State<HospitalDetail> {
   @override
   void initState() {
     super.initState();
-    if (languagechoice == 'Myanmar') {
+    if (languagechoice == 'mm') {
       setState(() {
         lan = 'mm';
         fb = "Facebook";
@@ -170,7 +172,7 @@ class DetailsState extends State<HospitalDetail> {
       alignment: Alignment.centerLeft,
       padding: EdgeInsets.only(top: 10.0, bottom: 10.0),
       child: Text(
-        languagechoice == 'Myanmar' ? 'ဝန်ဆောင်မှုများ' : 'Facility & Services',
+        languagechoice == 'mm' ? 'ဝန်ဆောင်မှုများ' : 'Facility & Services',
         style: TextStyle(
             fontSize: 16.0,
             fontWeight: FontWeight.bold,
@@ -481,8 +483,7 @@ class DetailsState extends State<HospitalDetail> {
                       indent: 65.0,
                     ),
                     ListTile(
-                      leading: ImageIcon(
-                          new AssetImage("assets/images/web.png"),
+                      leading: ImageIcon(new AssetImage("assets/icons/web.png"),
                           color: Color(0xFF72BB53)),
                       title: Text(details.website),
                       subtitle: Text(site,
@@ -498,7 +499,7 @@ class DetailsState extends State<HospitalDetail> {
                       indent: 65.0,
                     ),
                     ListTile(
-                      leading: ImageIcon(new AssetImage("assets/images/fb.png"),
+                      leading: ImageIcon(new AssetImage("assets/icons/fb.png"),
                           color: Color(0xFF72BB53)),
                       title: Text(details.facebook),
                       subtitle:

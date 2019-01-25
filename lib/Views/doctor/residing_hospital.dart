@@ -29,6 +29,7 @@ class _ResidingHospitalState extends State<ResidingHospital> {
   String flist;
   Set<FacilityService> facility = new Set<FacilityService>();
   var coord = [];
+  var _services = true;
   Clinic hosp;
   final String details;
   final String language;
@@ -78,6 +79,11 @@ class _ResidingHospitalState extends State<ResidingHospital> {
             setState(() {
               facility.add(c);
               _isLoading = false;
+            });
+          } else {
+            setState(() {
+              _isLoading = false;
+              _services = false;
             });
           }
         });
@@ -218,16 +224,24 @@ class _ResidingHospitalState extends State<ResidingHospital> {
       ),
     ));
 
-    //Seperating each and every facility & service with a divider to make them appear organized in the box
-    for (String name in facilitylist) {
+    if (_services == false) {
       list.add(Container(
-        padding: EdgeInsets.only(left: 60.0),
-        child: new Text(name),
+        padding: EdgeInsets.only(left: 60.0, bottom: 16.0),
+        child: new Text("Not Available"),
         alignment: Alignment.centerLeft,
       ));
-      list.add(Divider(
-        color: Colors.white,
-      ));
+    } else {
+      //Seperating each and every facility & service with a divider to make them appear organized in the box
+      for (String name in facilitylist) {
+        list.add(Container(
+          padding: EdgeInsets.only(left: 60.0),
+          child: new Text(name),
+          alignment: Alignment.centerLeft,
+        ));
+        list.add(Divider(
+          color: Colors.white,
+        ));
+      }
     }
     return new Column(
       children: list,
@@ -423,8 +437,7 @@ class _ResidingHospitalState extends State<ResidingHospital> {
                       indent: 65.0,
                     ),
                     ListTile(
-                      leading: ImageIcon(
-                          new AssetImage("assets/images/web.png"),
+                      leading: ImageIcon(new AssetImage("assets/icons/web.png"),
                           color: Color(0xFF72BB53)),
                       title: Text(hosp.website),
                       subtitle: Text(site,
@@ -440,7 +453,7 @@ class _ResidingHospitalState extends State<ResidingHospital> {
                       indent: 65.0,
                     ),
                     ListTile(
-                      leading: ImageIcon(new AssetImage("assets/images/fb.png"),
+                      leading: ImageIcon(new AssetImage("assets/icons/fb.png"),
                           color: Color(0xFF72BB53)),
                       title: Text(hosp.facebook),
                       subtitle:
@@ -454,7 +467,7 @@ class _ResidingHospitalState extends State<ResidingHospital> {
                     ),
                     Divider(),
                     ListTile(
-                      title: facility.isEmpty ? null : _facility(),
+                      title: _facility(),
                     )
                   ],
                 )),

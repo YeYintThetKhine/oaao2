@@ -35,7 +35,8 @@ Future<List<Reminder>> reminderData() async {
 
 class HomeScreen extends StatefulWidget {
   final String language;
-  HomeScreen({this.language});
+  final AuthFunction authFunction;
+  HomeScreen({this.language, this.authFunction});
   @override
   _HomeScreenState createState() => _HomeScreenState(setLan: language);
 }
@@ -83,6 +84,8 @@ class _HomeScreenState extends State<HomeScreen>
   var newsDateFormat = DateFormat("dd MMM yyyy");
   var newsData = '';
   var _viewAll = 'View All';
+  var loggedIn = false;
+  var account = '';
 
   _getNews() {
     dbRef.child('news').child(language).once().then((DataSnapshot dataSnap) {
@@ -114,6 +117,20 @@ class _HomeScreenState extends State<HomeScreen>
 
   @override
   void initState() {
+    widget.authFunction.getUser().then((user) {
+      if (user == null) {
+        setState(() {
+          loggedIn = false;
+        });
+      } else {
+        setState(() {
+          widget.authFunction.getEmail().then((email) {
+            account = email;
+          });
+          loggedIn = true;
+        });
+      }
+    });
     DBHelper dh = DBHelper();
     dh.initDb();
     animationController =
@@ -366,6 +383,20 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
+  _showUserInfo() {
+    showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text(
+              "User Info",
+              style: TextStyle(color: Theme.of(context).primaryColor),
+            ),
+            content: Text("Logged In as $account"),
+          );
+        });
+  }
+
   @override
   Widget build(BuildContext context) {
     var deviceWidth = MediaQuery.of(context).size.width;
@@ -380,6 +411,16 @@ class _HomeScreenState extends State<HomeScreen>
               automaticallyImplyLeading: false,
               backgroundColor: Color(0xFF72bb53),
               centerTitle: true,
+              leading: loggedIn == true
+                  ? IconButton(
+                      icon: Icon(
+                        Icons.account_circle,
+                        color: Color(0xFFFFFFFF),
+                        size: 32.0,
+                      ),
+                      onPressed: _showUserInfo,
+                    )
+                  : null,
               title: Text(
                 "OAAO Health Care".toUpperCase(),
                 style: TextStyle(color: Color(0xFFFFFFFF), fontSize: 20.0),

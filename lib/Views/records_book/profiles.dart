@@ -6,6 +6,7 @@ import '../../Views/records_book/medrecords.dart';
 import 'package:firebase_database/firebase_database.dart';
 import '../../Auth/auth.dart';
 import '../../Views/landing_page/login_screen.dart';
+import '../../Views/landing_page/home_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   final String lan;
@@ -195,6 +196,19 @@ class ProfileScreenState extends State<ProfileScreen>
       case AuthStatus.notSignedIn:
         return Scaffold(
           appBar: AppBar(
+            automaticallyImplyLeading: false,
+            leading: IconButton(
+              icon: Icon(Icons.arrow_back),
+              onPressed: () {
+                Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => HomeScreen(
+                              language: language,
+                              authFunction: Authentic(),
+                            )));
+              },
+            ),
             iconTheme: Theme.of(context).iconTheme,
           ),
           body: Center(
@@ -235,6 +249,19 @@ class ProfileScreenState extends State<ProfileScreen>
             title: Text(
               'PROFILES',
               style: TextStyle(color: Theme.of(context).textTheme.title.color),
+            ),
+            automaticallyImplyLeading: false,
+            leading: IconButton(
+              icon: Icon(Icons.arrow_back),
+              onPressed: () {
+                Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => HomeScreen(
+                              language: language,
+                              authFunction: Authentic(),
+                            )));
+              },
             ),
             actions: <Widget>[
               IconButton(
