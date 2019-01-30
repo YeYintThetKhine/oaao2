@@ -277,6 +277,7 @@ class _ReminderListState extends State<ReminderList> {
         MaterialPageRoute(
             builder: (BuildContext context) => HomeScreen(
                   language: language,
+                  authFunction: Authentic(),
                 )));
   }
 
