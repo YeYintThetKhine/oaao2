@@ -19,6 +19,7 @@ import 'dart:io';
 import '../../Views/records_book/profiles.dart';
 import '../../Auth/auth.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 class MenuSetting {
   static const String myanmar = 'Myanmar';
@@ -46,6 +47,7 @@ class _HomeScreenState extends State<HomeScreen>
   DatabaseReference dbRef = FirebaseDatabase.instance.reference();
   final String setLan;
   _HomeScreenState({this.setLan});
+  FirebaseMessaging _firebaseMessaging = new FirebaseMessaging();
   Animation animation, logoAnimation, menuAnimation;
   AnimationController animationController;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
@@ -143,6 +145,14 @@ class _HomeScreenState extends State<HomeScreen>
         parent: animationController, curve: Curves.fastOutSlowIn));
     animationController.forward();
     super.initState();
+    _firebaseMessaging.configure(
+      onMessage: (Map<String, dynamic> message) {},
+      onLaunch: (Map<String, dynamic> message) {},
+      onResume: (Map<String, dynamic> message) {},
+    );
+    _firebaseMessaging.getToken().then((token) {
+      print(token);
+    });
     if (setLan == 'mm') {
       setState(() {
         _languageChg("Myanmar");

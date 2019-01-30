@@ -214,6 +214,9 @@ class _LoginScreenState extends State<LoginScreen> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: <Widget>[
                             Container(
+                              child: Image.asset('assets/images/logo.png', width: device.width/1.5,),
+                            ),
+                            Container(
                               decoration: BoxDecoration(
                                   color: Theme.of(context).primaryColor,
                                   borderRadius: BorderRadius.circular(10.0)),

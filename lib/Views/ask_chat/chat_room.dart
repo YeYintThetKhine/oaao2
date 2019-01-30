@@ -145,6 +145,7 @@ class _ChatRoomState extends State<ChatRoom> with TickerProviderStateMixin {
           .toString()
           .substring(0, DateTime.now().toString().lastIndexOf(":")),
       'text': text,
+      'reply': '',
     };
     dbRef.child('chat').child('users').child(userId).push().set(chatForm);
     _textEditingController.clear();
@@ -310,10 +311,10 @@ class ChatMessagesArea extends StatelessWidget {
                               margin: const EdgeInsets.only(left: 12.0),
                               child: Container(
                                 padding: EdgeInsets.symmetric(
-                                    horizontal: 12.0, vertical: 12.0),
+                                    horizontal: 16.0, vertical: 12.0),
                                 decoration: BoxDecoration(
                                     color: Color.fromRGBO(60, 179, 113, 1),
-                                    borderRadius: BorderRadius.circular(50.0)),
+                                    borderRadius: BorderRadius.circular(25.0)),
                                 child: new Text(
                                   message,
                                   style: TextStyle(
@@ -340,7 +341,7 @@ class ChatMessagesArea extends StatelessWidget {
                   ),
                 )
               : Container(),
-          reply != null
+          reply != null && reply.length > 0
               ? Container(
                   margin: EdgeInsets.symmetric(vertical: 8.0),
                   child: Row(
@@ -362,10 +363,10 @@ class ChatMessagesArea extends StatelessWidget {
                               margin: const EdgeInsets.only(right: 12.0),
                               child: Container(
                                 padding: EdgeInsets.symmetric(
-                                    horizontal: 12.0, vertical: 12.0),
+                                    horizontal: 16.0, vertical: 12.0),
                                 decoration: BoxDecoration(
                                     color: Color.fromRGBO(60, 179, 113, 1),
-                                    borderRadius: BorderRadius.circular(50.0)),
+                                    borderRadius: BorderRadius.circular(25.0)),
                                 child: new Text(
                                   reply,
                                   style: TextStyle(
