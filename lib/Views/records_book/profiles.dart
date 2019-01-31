@@ -154,6 +154,16 @@ class ProfileScreenState extends State<ProfileScreen>
     }
   }
 
+  Future<bool> _backToMain() {
+    return Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+            builder: (BuildContext context) => HomeScreen(
+                  authFunction: Authentic(),
+                  language: language,
+                )));
+  }
+
   _logout() {
     showDialog(
         context: context,
@@ -194,52 +204,55 @@ class ProfileScreenState extends State<ProfileScreen>
   Widget build(BuildContext context) {
     switch (authStatus) {
       case AuthStatus.notSignedIn:
-        return Scaffold(
-          appBar: AppBar(
-            automaticallyImplyLeading: false,
-            leading: IconButton(
-              icon: Icon(Icons.arrow_back),
-              onPressed: () {
-                Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => HomeScreen(
-                              language: language,
-                              authFunction: Authentic(),
-                            )));
-              },
+        return WillPopScope(
+          onWillPop: _backToMain,
+          child: Scaffold(
+            appBar: AppBar(
+              automaticallyImplyLeading: false,
+              leading: IconButton(
+                icon: Icon(Icons.arrow_back),
+                onPressed: () {
+                  Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => HomeScreen(
+                                language: language,
+                                authFunction: Authentic(),
+                              )));
+                },
+              ),
+              iconTheme: Theme.of(context).iconTheme,
             ),
-            iconTheme: Theme.of(context).iconTheme,
-          ),
-          body: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 16.0),
-                  child: Text(
-                    notSignedIn,
-                    style: TextStyle(fontSize: 18.0),
+            body: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 16.0),
+                    child: Text(
+                      notSignedIn,
+                      style: TextStyle(fontSize: 18.0),
+                    ),
                   ),
-                ),
-                RaisedButton(
-                  color: Theme.of(context).primaryColor,
-                  onPressed: () {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => LoginScreen(
-                                  authFunction: Authentic(),
-                                  language: language,
-                                )));
-                  },
-                  child: Text(
-                    login,
-                    style: TextStyle(
-                        color: Theme.of(context).textTheme.title.color),
-                  ),
-                )
-              ],
+                  RaisedButton(
+                    color: Theme.of(context).primaryColor,
+                    onPressed: () {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => LoginScreen(
+                                    authFunction: Authentic(),
+                                    language: language,
+                                  )));
+                    },
+                    child: Text(
+                      login,
+                      style: TextStyle(
+                          color: Theme.of(context).textTheme.title.color),
+                    ),
+                  )
+                ],
+              ),
             ),
           ),
         );
