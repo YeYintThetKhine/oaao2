@@ -23,12 +23,14 @@ Future<List<User>> fetchusersFromDatabase() async {
 
 var maintheme = Color(0xFF72BB53);
 
-class SettingData {
-  static const String edit = 'Edit';
-  static const String delete = 'Delete';
+// class SettingData {
+//   final language;
+//   SettingData(this.language);
+//   static const String edit = 'Edit';
+//   static const String delete = 'Delete';
 
-  static const List<String> languages = <String>[edit, delete];
-}
+//   static const List<String> languages = <String>[edit, delete];
+// }
 
 enum AuthStatus {
   notSignedIn,
@@ -41,6 +43,12 @@ class ProfileScreenState extends State<ProfileScreen>
   DatabaseReference dbRef = FirebaseDatabase.instance.reference();
   String notSignedIn = 'You are not signed in!';
   String login = 'Login';
+
+  String edit;
+  String delete;
+
+  List<String> languages;
+
   DBHelper db = DBHelper();
   var loading = true;
   Future<List<User>> fetchusersFromDatabase() async {
@@ -97,11 +105,13 @@ class ProfileScreenState extends State<ProfileScreen>
                     borderRadius: BorderRadius.circular(16.0)),
                 content: Container(
                   height: 0.0,
-                  child: Text('More than 5 profiles is not allowed'),
+                  child: Text(language == 'en'
+                      ? 'More than 5 profiles is not allowed'
+                      : 'ပရိုဖိုင်များ ၅ခု ထက်မပိုရ'),
                 ),
                 actions: <Widget>[
                   FlatButton(
-                    child: Text('Close'),
+                    child: Text(language == 'en' ? 'Close' : 'ပိတ်မယ်'),
                     onPressed: () {
                       Navigator.pop(context);
                     },
@@ -138,6 +148,15 @@ class ProfileScreenState extends State<ProfileScreen>
       }
     });
     super.initState();
+    if (language == "en") {
+      edit = 'Edit';
+      delete = 'Delete';
+      languages = <String>[edit, delete];
+    } else {
+      edit = 'ပြင်မည်';
+      delete = 'ဖျက်မည်';
+      languages = <String>[edit, delete];
+    }
     animationController = AnimationController(
         vsync: this, duration: Duration(milliseconds: 1200));
     animation = Tween(begin: -1.0, end: 0.0).animate(CurvedAnimation(
@@ -260,7 +279,7 @@ class ProfileScreenState extends State<ProfileScreen>
         return Scaffold(
           appBar: AppBar(
             title: Text(
-              'PROFILES',
+              language == 'en' ? 'PROFILES' : 'ပရိုဖိုင်များ',
               style: TextStyle(color: Theme.of(context).textTheme.title.color),
             ),
             automaticallyImplyLeading: false,
@@ -313,7 +332,7 @@ class ProfileScreenState extends State<ProfileScreen>
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16.0)),
               title: Text(
-                'Create Profile',
+                language == 'en' ? 'Create Profile' : 'ပရိုဖိုင်းဖန်တီးပါ',
                 style: TextStyle(color: Theme.of(context).primaryColor),
               ),
               content: Container(
@@ -321,9 +340,15 @@ class ProfileScreenState extends State<ProfileScreen>
                   key: formKey,
                   child: TextFormField(
                     keyboardType: TextInputType.text,
-                    decoration: InputDecoration(labelText: 'Profile Name'),
-                    validator: (val) =>
-                        val.isEmpty ? "Profile name is required" : null,
+                    decoration: InputDecoration(
+                        labelText: language == 'en'
+                            ? 'Profile Name'
+                            : 'ပရိုဖိုင်းအမည်'),
+                    validator: (val) => val.isEmpty
+                        ? language == 'en'
+                            ? "Profile name is required"
+                            : 'ပရိုဖိုင်းအမည်လိုအပ်ပါသည်'
+                        : null,
                     onSaved: (val) => this.name = val,
                   ),
                 ),
@@ -333,7 +358,7 @@ class ProfileScreenState extends State<ProfileScreen>
                   highlightColor: Colors.transparent,
                   splashColor: Color.fromRGBO(114, 187, 83, 0.15),
                   child: Text(
-                    'Cancel',
+                    language == 'en' ? 'Cancel' : 'ရုပ်သိမ်း',
                     style: TextStyle(color: Theme.of(context).primaryColor),
                   ),
                   onPressed: () {
@@ -344,7 +369,7 @@ class ProfileScreenState extends State<ProfileScreen>
                   splashColor: Color.fromRGBO(114, 187, 83, 0.15),
                   highlightColor: Colors.transparent,
                   child: Text(
-                    'CREATE',
+                    language == 'en' ? 'CREATE' : 'ဖန်တီး',
                     style: TextStyle(
                         color: Theme.of(context).primaryColor,
                         fontWeight: FontWeight.bold),
@@ -394,6 +419,7 @@ class ProfileScreenState extends State<ProfileScreen>
                                         .push(MaterialPageRoute(
                                             builder: (context) => MedRec(
                                                   id: snapshot.data[index].id,
+                                                  lan: language,
                                                 )));
                                   },
                                   child: Container(
@@ -425,7 +451,7 @@ class ProfileScreenState extends State<ProfileScreen>
                                             ),
                                             itemBuilder:
                                                 (BuildContext context) {
-                                              return SettingData.languages
+                                              return languages
                                                   .map((String func) {
                                                 return PopupMenuItem<String>(
                                                   value: func,
@@ -434,7 +460,8 @@ class ProfileScreenState extends State<ProfileScreen>
                                               }).toList();
                                             },
                                             onSelected: (String choice) {
-                                              if (choice == "Edit") {
+                                              if (choice == "Edit" ||
+                                                  choice == "ပြင်မည်") {
                                                 showDialog(
                                                     context: context,
                                                     builder:
@@ -510,7 +537,10 @@ class ProfileScreenState extends State<ProfileScreen>
                                                                         Colors
                                                                             .transparent,
                                                                     child: Text(
-                                                                      'Cancel',
+                                                                      language ==
+                                                                              'en'
+                                                                          ? 'Cancel'
+                                                                          : "ရုပ်သိမ်း",
                                                                       style: TextStyle(
                                                                           color:
                                                                               Theme.of(context).primaryColor),
@@ -532,7 +562,10 @@ class ProfileScreenState extends State<ProfileScreen>
                                                                         Colors
                                                                             .transparent,
                                                                     child: Text(
-                                                                        'Confirm',
+                                                                        language ==
+                                                                                'en'
+                                                                            ? 'Confirm'
+                                                                            : 'အတည်ပြု',
                                                                         style: TextStyle(
                                                                             color:
                                                                                 Theme.of(context).primaryColor)),
@@ -566,7 +599,10 @@ class ProfileScreenState extends State<ProfileScreen>
                                                             actions: <Widget>[
                                                               FlatButton(
                                                                 child: Text(
-                                                                    'Cancel'),
+                                                                    language ==
+                                                                            'en'
+                                                                        ? 'Cancel'
+                                                                        : "ရုပ်သိမ်း"),
                                                                 onPressed: () {
                                                                   Navigator.pop(
                                                                       context);
@@ -585,7 +621,10 @@ class ProfileScreenState extends State<ProfileScreen>
                                                                     Colors
                                                                         .transparent,
                                                                 child: Text(
-                                                                  'Delete',
+                                                                  language ==
+                                                                          'en'
+                                                                      ? 'Delete'
+                                                                      : "ဖျက်မည်",
                                                                   style: TextStyle(
                                                                       fontWeight:
                                                                           FontWeight
@@ -607,8 +646,12 @@ class ProfileScreenState extends State<ProfileScreen>
                                                             ],
                                                             content: Container(
                                                               height: 0.0,
-                                                              child: Text(
-                                                                  'Do you want to delete this profile?'),
+                                                              child: language ==
+                                                                      'en'
+                                                                  ? Text(
+                                                                      'Do you want to delete this profile?')
+                                                                  : Text(
+                                                                      'ဤပရိုဖိုင်းကိုဖျက်ရန်လိုပါသလား?'),
                                                             ),
                                                           ),
                                                         ));
@@ -623,7 +666,14 @@ class ProfileScreenState extends State<ProfileScreen>
                               ));
                         }));
           } else {
-            return Center(child: new Text("No Profiles"));
+            return Center(
+                child: Container(
+              child:
+                  Text(language == 'en' ? "No Profiles" : 'ပရိုဖိုင်များမရှိပါ',
+                      style: TextStyle(
+                        fontSize: 16.0,
+                      )),
+            ));
           }
         },
       ),

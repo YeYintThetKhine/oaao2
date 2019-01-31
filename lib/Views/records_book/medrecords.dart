@@ -9,11 +9,14 @@ import 'package:multi_image_picker/asset.dart';
 import 'package:multi_image_picker/multi_image_picker.dart';
 import 'package:flutter/services.dart';
 import 'package:random_string/random_string.dart' as random;
+import './recordsearch.dart';
+import 'package:flutter/cupertino.dart';
 
 class MedRec extends StatefulWidget {
   final int id;
-  MedRec({@required this.id});
-  MedRecState createState() => MedRecState(userid: id);
+  final String lan;
+  MedRec({@required this.id,@required this.lan});
+  MedRecState createState() => MedRecState(userid: id,lan:lan);
 }
 
 const timeout = const Duration(milliseconds: 100);
@@ -29,7 +32,13 @@ String tyear = date.year.toString();
 var _visible = true;
 List<Uint8List> images = List();
 
+
 class MedRecState extends State<MedRec> with SingleTickerProviderStateMixin {
+  final lan;
+  var _textStyle = TextStyle(
+    color: Color(0xFF72BB53),
+    fontWeight: FontWeight.bold
+  );
   String order = "DESC";
   Future<List<Records>> fetchrecordsFromDatabase() async {
     var dbHelper = DBHelper();
@@ -40,7 +49,7 @@ class MedRecState extends State<MedRec> with SingleTickerProviderStateMixin {
 
   var formKey = GlobalKey<FormState>();
   final int userid;
-  MedRecState({@required this.userid});
+  MedRecState({@required this.userid,@required this.lan});
 
   String recid;
   String doctor;
@@ -96,39 +105,64 @@ class MedRecState extends State<MedRec> with SingleTickerProviderStateMixin {
                             alignment: Alignment.topLeft,
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisSize: MainAxisSize.max,
+                              mainAxisSize: MainAxisSize.max,                              
                               children: <Widget>[
-                                Container(
-                                  padding: EdgeInsets.all(4.0),
-                                  child: Text(
-                                      'Date : ${snapshot.data[index].date}',
-                                      style: TextStyle(color: Colors.green)),
-                                ),
-                                Container(
-                                  padding: EdgeInsets.all(4.0),
-                                  child: Text(
-                                      'Doctor : ${snapshot.data[index].doctor}',
-                                      style: TextStyle(color: Colors.green)),
-                                ),
-                                Container(
-                                  padding: EdgeInsets.all(4.0),
-                                  child: Text(
-                                      'Hospital : ${snapshot.data[index].hospital}',
-                                      style: TextStyle(color: Colors.green)),
-                                ),
-                                snapshot.data[index].problem.length <= 30
+                                Padding(
+                  padding:EdgeInsets.only(top:4.0,bottom:4.0),
+                  child:Row(
+                  children: <Widget>[
+                      Container(
+                        width:80,
+                        padding:EdgeInsets.only(left:8.0,),
+                        child:Text(lan=='en'?'Doctor':'ဆရာဝန်',style:_textStyle,),),
+                    Expanded(
+                      child: Text(snapshot.data[index].doctor),
+                    )
+                  ],
+                ),
+                ),
+
+                Padding(
+                  padding:EdgeInsets.only(top:4.0,bottom:4.0),
+                  child:Row(
+                  children: <Widget>[
+                      Container(
+                        width:80,
+                        padding:EdgeInsets.only(left:8.0,),
+                        child:Text(lan=='en'?'Hospital':'ဆေးရုံ',style:_textStyle,),),
+                    Expanded(
+                      child: Text(snapshot.data[index].hospital),
+                    )
+                  ],
+                )
+                ),
+
+                Padding(
+                  padding:EdgeInsets.only(top:4.0,bottom:4.0),
+                  child:Row(
+                  children: <Widget>[
+                      Container(
+                        width:80,
+                        padding:EdgeInsets.only(left:8.0,),
+                        child:Text(lan=='en'?'Problem':'မှတ်တမ်း',style:_textStyle,),),
+                    Expanded(
+                      child: snapshot.data[index].problem.length <= 30
                                     ? Container(
-                                        padding: EdgeInsets.all(4.0),
-                                        child: Text(
-                                            'Problem : ${snapshot.data[index].problem}',
-                                            style:
-                                                TextStyle(color: Colors.green)))
+                                      padding:EdgeInsets.all(4.0),
+                                      child: Text(
+                                        '${snapshot.data[index].problem}',
+                                        )
+                                        )
                                     : Container(
-                                        padding: EdgeInsets.all(4.0),
-                                        child: Text(
-                                            'Problem : ${snapshot.data[index].problem.substring(1, 25)}....',
-                                            style: TextStyle(
-                                                color: Colors.green))),
+                                      padding:EdgeInsets.all(4.0),
+                                      child: Text(
+                                        '${snapshot.data[index].problem.substring(1, 25)}....',
+                                        )
+                                        ),
+                    )
+                  ],
+                )
+                ),
                               ],
                             ),
                           ),
@@ -138,22 +172,25 @@ class MedRecState extends State<MedRec> with SingleTickerProviderStateMixin {
                           onTap: () {
                             Navigator.push(
                                 context,
-                                MaterialPageRoute(
+                                CupertinoPageRoute(
                                     builder: (context) => DetailScreen(
                                           rd: snapshot.data[index],
+                                          lan: lan,
                                         )));
                           },
                         )),
                   ),
             )
           : Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
                 Center(
                   child: Container(
-                    width: 150.0,
-                    height: 150.0,
-                    child: Text('No medical records yet'),
+                    child: Text(lan=='en'?'No Medical Records':'ဆေးမှတ်တမ်းများမရှိပါ',
+                    style:TextStyle(
+                      fontSize:16.0,
+                      color:Colors.white
+                    )),
                   ),
                 )
               ],
@@ -184,8 +221,8 @@ class MedRecState extends State<MedRec> with SingleTickerProviderStateMixin {
     List<Asset> img = List();
     List resultList;
     setState(() {
-      img = List();
-    });
+          img = List();
+        });
 
     try {
       resultList = await MultiImagePicker.pickImages(
@@ -203,12 +240,13 @@ class MedRecState extends State<MedRec> with SingleTickerProviderStateMixin {
 
     setState(() {
       img = resultList;
+      
     });
-    for (Asset asset in img) {
+    for(Asset asset in img){
       await asset.requestOriginal(quality: 20);
       setState(() {
-        images.add(asset.imageData.buffer.asUint8List());
-      });
+              images.add(asset.imageData.buffer.asUint8List());
+            });
     }
   }
 
@@ -232,13 +270,24 @@ class MedRecState extends State<MedRec> with SingleTickerProviderStateMixin {
         elevation: 0.0,
         iconTheme: IconThemeData(color: Colors.white),
         title: new Text(
-          "MEDICAL RECORDS",
+          lan=='en'?"RECORDS":"ဆေးမှတ်တမ်းများ",
           style: TextStyle(color: Colors.white),
         ),
         actions: <Widget>[
           IconButton(
-            tooltip:
-                order == "DESC" ? 'Sort: Newest First' : 'Sort: Oldest First',
+            icon: Icon(Icons.search),
+            onPressed: (){
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context)=>RecordSearch(uid: userid,lan:lan)
+                )
+              );
+            },
+          ),
+          IconButton(
+            tooltip: order=="DESC"
+            ?'Sort: Newest First'
+            :'Sort: Oldest First',
             icon: Icon(Icons.sort),
             onPressed: () {
               setState(() {
@@ -249,25 +298,20 @@ class MedRecState extends State<MedRec> with SingleTickerProviderStateMixin {
                 }
               });
             },
-          )
+          ),
         ],
       ),
       floatingActionButton: _visible
           ? FloatingActionButton(
-              backgroundColor: add ? Colors.white : Colors.red,
+              backgroundColor: add?Colors.white:Colors.red,
               tooltip: 'Create Medical Record',
-              child: add
-                  ? Icon(
-                      Icons.add,
-                      color: Colors.green,
-                    )
-                  : Icon(Icons.close),
+              child: add?Icon(Icons.add,color: Colors.green,):Icon(Icons.close),
               onPressed: () {
                 _controller.fling(velocity: _isPanelVisible ? -1.0 : 1.0);
                 setState(() {
                   if (add == true) {
                     add = false;
-                  } else {
+                  } else {  
                     add = true;
                   }
                   if (images.length == 0) {
@@ -280,8 +324,7 @@ class MedRecState extends State<MedRec> with SingleTickerProviderStateMixin {
                   FocusScope.of(context).requestFocus(new FocusNode());
                 });
                 scrlcont.animateTo(0.0,
-                    duration: const Duration(milliseconds: 10),
-                    curve: Curves.easeOut);
+        duration: const Duration(milliseconds: 10), curve: Curves.easeOut);
               },
             )
           : null,
@@ -308,6 +351,7 @@ class MedRecState extends State<MedRec> with SingleTickerProviderStateMixin {
     scrlcont.animateTo(0.0,
         duration: const Duration(milliseconds: 10), curve: Curves.easeOut);
     _controller.fling(velocity: _isPanelVisible ? -1.0 : 1.0);
+    FocusScope.of(context).requestFocus(new FocusNode());
     setState(() {
       images = List();
     });
@@ -319,44 +363,25 @@ class MedRecState extends State<MedRec> with SingleTickerProviderStateMixin {
         status == AnimationStatus.forward;
   }
 
-  // Widget buildGridView() {
-  //   return Container(
-  //     child: GridView.builder(
-  //       gridDelegate:
-  //           SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3),
-  //       itemCount: images.length,
-  //       itemBuilder: (context, index) => Container(
-  //             child: AssetView(index, images[index]),
-  //           ),
-  //     ),
-  //   );
-  // }
-  Widget buildGridView() {
+  Widget buildGridView(){
     return Container(
-      height: images.length < 4 ? 150 : 280,
+      height:images.length<4?150:280,
       child: GridView.builder(
-        gridDelegate:
-            SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3),
-        itemCount: images.length,
-        itemBuilder: (context, index) => GridTile(
-              header: IconButton(
-                alignment: Alignment.topRight,
-                icon: Icon(
-                  Icons.cancel,
-                  color: Colors.red,
-                ),
-                onPressed: () {
-                  setState(() {
-                    images.removeAt(index);
-                  });
-                },
-              ),
-              child: Image.memory(
-                images[index],
-                fit: BoxFit.cover,
-              ),
-            ),
+      gridDelegate:SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3),
+      itemCount: images.length,
+      itemBuilder: (context,index)=>GridTile(
+        header: IconButton(
+          alignment: Alignment.topRight,
+          icon: Icon(Icons.cancel,color: Colors.red,),
+          onPressed: (){
+            setState(() {
+                          images.removeAt(index);
+                        });
+          },
+        ),
+        child: Image.memory(images[index],fit: BoxFit.cover,),
       ),
+    ),
     );
   }
 
@@ -406,14 +431,20 @@ class MedRecState extends State<MedRec> with SingleTickerProviderStateMixin {
                                       child: TextFormField(
                                         controller: doc,
                                         decoration: InputDecoration(
+                                          suffixIcon: IconButton(
+                                            icon: Icon(Icons.cancel),
+                                            onPressed: (){
+                                              doc.clear();
+                                            },
+                                          ),
                                           labelStyle: TextStyle(
                                               color: Color(0xFF1487de)),
-                                          counterText: 'Doctor name',
+                                          counterText: lan=='en'?'Doctor name':'ဆရာဝန်အမည်',
                                           border: OutlineInputBorder(),
-                                          labelText: 'DOCTOR',
+                                          labelText: lan=='en'?'DOCTOR':'ဆရာဝန်',
                                         ),
                                         validator: (val) => val.isEmpty
-                                            ? "Doctor name is required"
+                                            ? lan=='en'?"Doctor name is required":"ဆရာဝန်အမည်လိုအပ်ပါသည်"
                                             : null,
                                         onSaved: (val) => this.doctor = val,
                                         onEditingComplete: () {
@@ -428,17 +459,23 @@ class MedRecState extends State<MedRec> with SingleTickerProviderStateMixin {
                                   child: TextFormField(
                                     controller: hos,
                                     decoration: InputDecoration(
+                                      suffixIcon: IconButton(
+                                            icon: Icon(Icons.cancel),
+                                            onPressed: (){
+                                              hos.clear();
+                                            },
+                                          ),
                                         labelStyle:
                                             TextStyle(color: Color(0xFF1487de)),
-                                        counterText: 'Hospital name',
+                                        counterText: lan=='en'?'Hospital name':'ဆေးရုံအမည်',
                                         border: OutlineInputBorder(),
-                                        labelText: 'HOSPITAL'),
+                                        labelText: lan=='en'?'HOSPITAL':'ဆေးရုံ'),
                                     focusNode: hospitalNode,
                                     onEditingComplete: () =>
                                         FocusScope.of(context)
                                             .requestFocus(descNode),
                                     validator: (val) => val.isEmpty
-                                        ? "Hospital name is required"
+                                        ? lan=="en"?"Hospital name is required":"ဆေးရုံအမည်လိုအပ်ပါသည်"
                                         : null,
                                     onSaved: (val) => this.hospital = val,
                                   ),
@@ -449,14 +486,20 @@ class MedRecState extends State<MedRec> with SingleTickerProviderStateMixin {
                                   child: TextFormField(
                                     controller: pro,
                                     decoration: InputDecoration(
+                                      suffixIcon: IconButton(
+                                            icon: Icon(Icons.cancel),
+                                            onPressed: (){
+                                              pro.clear();
+                                            },
+                                          ),
                                         labelStyle:
                                             TextStyle(color: Color(0xFF1487de)),
-                                        counterText: 'Record description',
+                                        counterText: lan=='en'?'Record description':"မှတ်တမ်းအကြောင်းအရင်း",
                                         border: OutlineInputBorder(),
-                                        labelText: 'PROBLEM'),
+                                        labelText: lan=='en'?'PROBLEM':'အကြောင်းအရင်း'),
                                     focusNode: descNode,
                                     validator: (val) => val.isEmpty
-                                        ? "Problem name is required"
+                                        ? lan=='en'?"Problem name is required":'အကြောင်းအရင်းလိုအပ်ပါသည်'
                                         : null,
                                     onSaved: (val) => this.problem = val,
                                     maxLines: 2,
@@ -473,11 +516,11 @@ class MedRecState extends State<MedRec> with SingleTickerProviderStateMixin {
                                   borderRadius: BorderRadius.circular(16.0)),
                               color: Color(0xFF71c2ff),
                               child: Text(
-                                'Choose Images',
+                                lan=='en'?'Choose Images':'ပုံရွေးချယ်မည်',
                                 style: TextStyle(
                                     color: Colors.white, fontSize: 16.0),
                               ),
-                              onPressed: loadAssets,
+                              onPressed:loadAssets,
                             )),
                         Container(
                             padding: EdgeInsets.only(
@@ -491,7 +534,7 @@ class MedRecState extends State<MedRec> with SingleTickerProviderStateMixin {
                                     borderRadius: BorderRadius.circular(16.0)),
                                 color: Color(0xFF72BB53),
                                 child: Text(
-                                  'Save',
+                                  lan=='en'?'Save':'သိမ်းဆည်းမည်',
                                   style: TextStyle(
                                       color: Colors.white, fontSize: 16.0),
                                 ),
@@ -505,13 +548,11 @@ class MedRecState extends State<MedRec> with SingleTickerProviderStateMixin {
                                                     BorderRadius.circular(
                                                         16.0)),
                                             content: Container(
-                                                height: 0.0,
-                                                child: Text(
-                                                  'Record successfully created',
-                                                  style: TextStyle(
-                                                      fontWeight:
-                                                          FontWeight.bold),
-                                                )),
+                                              height: 0.0,
+                                              child: Text(
+                                                lan=='en'?'Record successfully created':'ဖန်ဆင်မှုအောင်မြင်သည်'
+                                                ,style:TextStyle(fontWeight: FontWeight.bold),)
+                                            ),
                                             actions: <Widget>[
                                               FlatButton(
                                                 child: Text('Close'),

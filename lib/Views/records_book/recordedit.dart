@@ -5,14 +5,16 @@ import '../records_book/images_edit.dart';
 List<ImageData> imagelist;
 class RecordEdit extends StatefulWidget {
   final record;
-  RecordEdit({@required this.record});
+  final lan;
+  RecordEdit({@required this.record,@required this.lan});
 
-  _RecordEditState createState() => _RecordEditState(record: record);
+  _RecordEditState createState() => _RecordEditState(record: record,lan:lan);
 }
 
 class _RecordEditState extends State<RecordEdit> {
   Records record;
-  _RecordEditState({@required this.record});
+  final lan;
+  _RecordEditState({@required this.record,@required this.lan});
 
   DBHelper dbHelper = DBHelper();
 
@@ -63,7 +65,7 @@ class _RecordEditState extends State<RecordEdit> {
     setState(() {
           imagelist = result;
         });
-  }
+  } 
 
   bool _submit() {
     if (this.formKey.currentState.validate()) {
@@ -123,7 +125,7 @@ class _RecordEditState extends State<RecordEdit> {
     return Scaffold(
       appBar: AppBar(
         iconTheme: IconThemeData(color: Colors.white),
-        title: Text('EDIT RECORD', style: TextStyle(color: Colors.white)),
+        title: Text(lan=='en'?'EDIT RECORD':'ဆေးမှတ်တမ်းပြင်ရန်', style: TextStyle(color: Colors.white)),
       ),
 
       body:SingleChildScrollView(
@@ -149,11 +151,17 @@ class _RecordEditState extends State<RecordEdit> {
                           controller: docCtrl,
                           enabled: docEdit ? true : false,
                           decoration: InputDecoration(
+                            suffixIcon: docEdit?IconButton(
+                                            icon: Icon(Icons.cancel),
+                                            onPressed: (){
+                                              docCtrl.clear();
+                                            },
+                                          ):null,
                               labelStyle: TextStyle(color: Color(0xFF72BB53)),
-                              labelText: 'Doctor',
-                              counterText: 'Doctor Name'),
+                              labelText: lan=='en'?'Doctor':'ဆရာဝန်',
+                              counterText: lan=='en'?'Doctor Name':'ဆရာဝန်အမည်',),
                           validator: (val) =>
-                              val.isEmpty ? "Doctor name is required" : null,
+                              val.isEmpty ? lan=='en'?"Doctor name is required":"ဆရာဝန်အမည်လိုအပ်ပါသည်" : null,
                           onSaved: (val) => this.doctor = val,
                         ),
                       ),
@@ -170,7 +178,7 @@ class _RecordEditState extends State<RecordEdit> {
                                 color: Color(0xFF72BB53)
                               )
                               ),
-                          child: docEdit?Text('Confirm'):Text('Edit'),
+                          child: docEdit?Text(lan=='en'?'Confirm':'အတည်ပြု'):Text(lan=='en'?'Edit':'ပြင်မည်'),
                           onPressed: () {
                             setState(() {
                               if (docEdit == false) {
@@ -206,11 +214,17 @@ class _RecordEditState extends State<RecordEdit> {
                           controller: hosCtrl,
                           enabled: hosEdit ? true : false,
                           decoration: InputDecoration(
+                            suffixIcon: hosEdit?IconButton(
+                                            icon: Icon(Icons.cancel),
+                                            onPressed: (){
+                                              hosCtrl.clear();
+                                            },
+                                          ):null,
                               labelStyle: TextStyle(color: Color(0xFF72BB53)),
-                              labelText: 'Hospital',
-                              counterText: 'Hospital Name'),
+                              labelText: lan=='en'?'Hospital':'ဆေးရုံ',
+                              counterText: lan=='en'?'Hospital Name':'ဆေးရုံအမည်'),
                           validator: (val) =>
-                              val.isEmpty ? "Hospital name is required" : null,
+                              val.isEmpty ? lan=='en'?"Hospital name is required":"ဆေးရုံအမည်လိုအပ်ပါသည်" : null,
                           onSaved: (val) => this.hospital = val,
                         ),
                       ),
@@ -221,7 +235,7 @@ class _RecordEditState extends State<RecordEdit> {
                           textColor: Colors.white,
                           shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(16.0)),
-                          child: hosEdit?Text('Confirm'):Text('Edit'),
+                          child: hosEdit?Text(lan=='en'?'Confirm':'အတည်ပြု'):Text(lan=='en'?'Edit':'ပြင်မည်'),
                           onPressed: () {
                             setState(() {
                               if (hosEdit == false) {
@@ -257,11 +271,17 @@ class _RecordEditState extends State<RecordEdit> {
                           controller: proCtrl,
                           enabled: proEdit ? true : false,
                           decoration: InputDecoration(
+                            suffixIcon: proEdit?IconButton(
+                                            icon: Icon(Icons.cancel),
+                                            onPressed: (){
+                                              proCtrl.clear();
+                                            },
+                                          ):null,
                               labelStyle: TextStyle(color: Color(0xFF72BB53)),
-                              labelText: 'Problem',
-                              counterText: 'Problem Description'),
+                              labelText: lan=='en'?'Problem':'အကြောင်းအရင်း',
+                              counterText: lan=='en'?'Problem Description':"မှတ်တမ်းအကြောင်းအရင်း"),
                           validator: (val) =>
-                              val.isEmpty ? "Problem name is required" : null,
+                              val.isEmpty ? lan=='en'?"Problem name is required":'အကြောင်းအရင်းလိုအပ်ပါသည်' : null,
                           onSaved: (val) => this.problem = val,
                           maxLines: 2,
                         ),
@@ -273,7 +293,7 @@ class _RecordEditState extends State<RecordEdit> {
                           textColor: Colors.white,
                           shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(16.0)),
-                          child: proEdit?Text('Confirm'):Text('Edit'),
+                          child: proEdit?Text(lan=='en'?'Confirm':'အတည်ပြု'):Text(lan=='en'?'Edit':'ပြင်မည်'),
                           onPressed: () {
                             setState(() {
                               if (proEdit == false) {
@@ -310,12 +330,11 @@ class _RecordEditState extends State<RecordEdit> {
                                 width: 2,
                               )
                               ),
-                          child: Text('Edit'),
+                          child: Text(lan=='en'?'Edit':'ပြင်မည်'),
                           onPressed: (){
                             Navigator.of(context).push(
                               MaterialPageRoute(
-                                builder:(context)=>ImagesEdit(imglist: imagelist,record: record,)
-                                
+                                builder:(context)=>ImagesEdit(imglist: imagelist,record: record,lan: lan,)
                               )
                             );
                             print('hello');
