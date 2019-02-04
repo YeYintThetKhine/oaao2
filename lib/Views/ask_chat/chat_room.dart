@@ -48,6 +48,10 @@ class _ChatRoomState extends State<ChatRoom> with TickerProviderStateMixin {
         setState(() {
           authStatus = AuthStatus.notSignedIn;
         });
+      } else if (user == "Not Verified User") {
+        setState(() {
+          authStatus = AuthStatus.notSignedIn;
+        });
       } else {
         setState(() {
           authStatus = AuthStatus.signedIn;
@@ -135,7 +139,9 @@ class _ChatRoomState extends State<ChatRoom> with TickerProviderStateMixin {
       messagesArea.animationController.dispose();
     }
     super.dispose();
-    msgSubscription.cancel();
+    try {
+      msgSubscription.cancel();
+    } catch (e) {}
   }
 
   void _handleSubmitted(String text) {

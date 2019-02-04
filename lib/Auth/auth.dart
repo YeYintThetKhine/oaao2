@@ -28,6 +28,7 @@ class Authentic implements AuthFunction {
   Future<String> signUp(String email, String password) async {
     FirebaseUser user = await _firebaseAuth.createUserWithEmailAndPassword(
         email: email, password: password);
+    _firebaseAuth.signOut();
     return user.uid;
   }
 
@@ -38,7 +39,11 @@ class Authentic implements AuthFunction {
     } catch (e) {
       print(e);
     }
-    return user.uid;
+    if (user.isEmailVerified == false) {
+      return "Not Verified User";
+    } else {
+      return user.uid;
+    }
   }
 
   Future<void> signOut() async {

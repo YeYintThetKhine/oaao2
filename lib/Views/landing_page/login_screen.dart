@@ -4,6 +4,8 @@ import '../../Auth/auth.dart';
 import '../../Views/landing_page/signup_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:connectivity/connectivity.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:firebase_database/firebase_database.dart';
 
 class LoginScreen extends StatefulWidget {
   final String language;
@@ -17,6 +19,8 @@ class _LoginScreenState extends State<LoginScreen> {
   final String language;
   _LoginScreenState({this.language});
   GlobalKey<ScaffoldState> _scaffold = GlobalKey<ScaffoldState>();
+  FirebaseMessaging _firebaseMessaging = new FirebaseMessaging();
+  DatabaseReference dbRef = FirebaseDatabase.instance.reference();
   final loginFormKey = GlobalKey<FormState>();
   final resetFormKey = GlobalKey<FormState>();
   final email = TextEditingController();
@@ -27,10 +31,16 @@ class _LoginScreenState extends State<LoginScreen> {
   var _conStatus = "Unknown";
   Connectivity connectivity;
   var subscription;
+  var token;
 
   @override
     void initState() {
       super.initState();
+      _firebaseMessaging.getToken().then((id) {
+        setState(() {
+          token = id;
+        });
+      });
     _checkCon();
     }
 
@@ -87,6 +97,10 @@ class _LoginScreenState extends State<LoginScreen> {
           }
           else{
             setState(() {
+              var devID = <String, dynamic>{
+                'token': token,
+              };
+              dbRef.child('user_devs').child(userId).child(token).set(devID);
               _loading = false;
               Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (BuildContext context) => HomeScreen(authFunction: Authentic(), language: language,)));
             });

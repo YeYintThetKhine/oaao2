@@ -141,6 +141,10 @@ class ProfileScreenState extends State<ProfileScreen>
         setState(() {
           authStatus = AuthStatus.notSignedIn;
         });
+      } else if (user == "Not Verified User") {
+        setState(() {
+          authStatus = AuthStatus.notSignedIn;
+        });
       } else {
         setState(() {
           authStatus = AuthStatus.signedIn;

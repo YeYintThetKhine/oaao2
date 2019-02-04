@@ -72,7 +72,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
           setState(() {
             _loading = false;
           });
-          Navigator.of(context).pushNamed('/LoginScreen');
+          Navigator.pop(context);
         } catch (e) {
           setState(() {
             _loading = false;

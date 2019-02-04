@@ -124,6 +124,10 @@ class _HomeScreenState extends State<HomeScreen>
         setState(() {
           loggedIn = false;
         });
+      } else if (user == "Not Verified User") {
+        setState(() {
+          loggedIn = false;
+        });
       } else {
         setState(() {
           widget.authFunction.getEmail().then((email) {
