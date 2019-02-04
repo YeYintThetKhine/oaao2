@@ -7,6 +7,7 @@ import 'package:firebase_database/firebase_database.dart';
 import '../../Auth/auth.dart';
 import '../../Views/landing_page/login_screen.dart';
 import '../../Views/landing_page/home_screen.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 class ProfileScreen extends StatefulWidget {
   final String lan;
@@ -41,6 +42,7 @@ class ProfileScreenState extends State<ProfileScreen>
     with SingleTickerProviderStateMixin {
   AuthStatus authStatus = AuthStatus.notSignedIn;
   DatabaseReference dbRef = FirebaseDatabase.instance.reference();
+  FirebaseMessaging _firebaseMessaging = new FirebaseMessaging();
   String notSignedIn = 'You are not signed in!';
   String login = 'Login';
 
@@ -48,7 +50,8 @@ class ProfileScreenState extends State<ProfileScreen>
   String delete;
 
   List<String> languages;
-
+  var accID;
+  var token;
   DBHelper db = DBHelper();
   var loading = true;
   Future<List<User>> fetchusersFromDatabase() async {
@@ -147,9 +150,15 @@ class ProfileScreenState extends State<ProfileScreen>
         });
       } else {
         setState(() {
+          accID = user;
           authStatus = AuthStatus.signedIn;
         });
       }
+    });
+    _firebaseMessaging.getToken().then((id) {
+      setState(() {
+        token = id;
+      });
     });
     super.initState();
     if (language == "en") {
@@ -206,6 +215,14 @@ class ProfileScreenState extends State<ProfileScreen>
                   widget.authFunction.signOut();
                   Navigator.of(context).pop();
                   setState(() {
+                    var devID = <String, dynamic>{
+                      'log_in': false,
+                    };
+                    dbRef
+                        .child('user_devs')
+                        .child(accID)
+                        .child(token)
+                        .set(devID);
                     authStatus = AuthStatus.notSignedIn;
                   });
                 },
