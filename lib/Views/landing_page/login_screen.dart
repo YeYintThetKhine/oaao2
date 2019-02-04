@@ -98,7 +98,7 @@ class _LoginScreenState extends State<LoginScreen> {
           else{
             setState(() {
               var devID = <String, dynamic>{
-                'token': token,
+                'log_in': true,
               };
               dbRef.child('user_devs').child(userId).child(token).set(devID);
               _loading = false;
