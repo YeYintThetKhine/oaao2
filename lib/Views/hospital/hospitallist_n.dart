@@ -86,7 +86,6 @@ class _HospitalListState extends State<HospitalList> {
               map: data[key]['map']);
           hoslist.add(c);
           names.add(c.name);
-          print('done');
         }
       });
     });

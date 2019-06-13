@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/animation.dart';
 import '../../Animations/slide_right_in.dart';
@@ -20,6 +21,7 @@ import '../../Views/records_book/profiles.dart';
 import '../../Auth/auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:connectivity/connectivity.dart';
 
 class MenuSetting {
   static const String myanmar = 'Myanmar';
@@ -88,6 +90,10 @@ class _HomeScreenState extends State<HomeScreen>
   var _viewAll = 'View All';
   var loggedIn = false;
   var account = '';
+  var _connection;
+  var _conStatus = "Unknown";
+  Connectivity connectivity;
+  var subscription;
 
   _getNews() {
     dbRef.child('news').child(language).once().then((DataSnapshot dataSnap) {
@@ -96,6 +102,7 @@ class _HomeScreenState extends State<HomeScreen>
           newsData = 'No News';
         });
       } else {
+        newsList.clear();
         var keys = dataSnap.value.keys;
         var value = dataSnap.value;
         for (var key in keys) {
@@ -167,6 +174,26 @@ class _HomeScreenState extends State<HomeScreen>
       });
     }
     _fetchReminder();
+    _checkCon();
+  }
+
+  _checkCon() {
+    connectivity = new Connectivity();
+    subscription =
+        connectivity.onConnectivityChanged.listen((ConnectivityResult result) {
+      if (result == ConnectivityResult.mobile ||
+          result == ConnectivityResult.wifi) {
+        setState(() {
+          _connection = true;
+          _getNews();
+        });
+      } else {
+        setState(() {
+          _connection = false;
+          _conStatus = "No Internet Connection!";
+        });
+      }
+    });
   }
 
   _fetchReminder() {
@@ -239,9 +266,8 @@ class _HomeScreenState extends State<HomeScreen>
         menuNews = "သတင်းများ";
         language = "mm";
         dynSize = 14.0;
-        newsList.clear();
         _isLoading = false;
-        _getNews();
+        _checkCon();
       });
     } else {
       setState(() {
@@ -257,9 +283,8 @@ class _HomeScreenState extends State<HomeScreen>
         menuNews = "News";
         language = "en";
         dynSize = 16.0;
-        newsList.clear();
         _isLoading = false;
-        _getNews();
+        _checkCon();
       });
     }
   }
@@ -618,140 +643,181 @@ class _HomeScreenState extends State<HomeScreen>
                                   color: Color.fromRGBO(0, 0, 0, 0.5),
                                 ),
                               ),
-                              _isLoading == true
-                                  ? CarouselSlider(
-                                      distortion: false,
-                                      items: newsList.map((i) {
-                                        return Builder(
-                                          builder: (BuildContext context) {
-                                            return Container(
-                                              margin: EdgeInsets.fromLTRB(
-                                                  12.0, 8.0, 12.0, 8.0),
-                                              decoration: BoxDecoration(
+                              _connection == false
+                                  ? Center(
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: <Widget>[
+                                          Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                                vertical: 16.0),
+                                            child: Icon(
+                                              Icons
+                                                  .signal_cellular_connected_no_internet_4_bar,
+                                              color: Theme.of(context)
+                                                  .primaryColor,
+                                              size: 36.0,
+                                            ),
+                                          ),
+                                          Padding(
+                                            padding: const EdgeInsets.only(
+                                                bottom: 16.0),
+                                            child: Text(
+                                              _conStatus,
+                                              style: TextStyle(
                                                   color: Theme.of(context)
-                                                      .textTheme
-                                                      .title
-                                                      .color,
-                                                  borderRadius:
-                                                      BorderRadius.circular(
-                                                          10.0),
-                                                  boxShadow: [
-                                                    BoxShadow(
-                                                        color: Color.fromRGBO(
-                                                            114, 187, 83, 0.5),
-                                                        blurRadius: 10.0)
-                                                  ]),
-                                              child: FlatButton(
-                                                highlightColor:
-                                                    Colors.transparent,
-                                                shape: RoundedRectangleBorder(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            10.0)),
-                                                padding: EdgeInsets.all(16.0),
-                                                onPressed: () {
-                                                  Navigator.push(
-                                                      context,
-                                                      SlideFromBottomAnimation(
-                                                          widget: NewsPage(
-                                                        news: i,
-                                                        language: language,
-                                                        appbarTitle: menuNews,
-                                                      )));
-                                                },
-                                                child: Column(
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.start,
-                                                  children: <Widget>[
-                                                    Row(
-                                                      mainAxisAlignment:
-                                                          MainAxisAlignment
-                                                              .spaceBetween,
-                                                      children: <Widget>[
-                                                        Container(
-                                                          alignment:
-                                                              AlignmentDirectional
-                                                                  .centerStart,
-                                                          padding:
-                                                              EdgeInsets.all(
-                                                                  8.0),
-                                                          color:
-                                                              Theme.of(context)
-                                                                  .primaryColor,
-                                                          child: Column(
-                                                            crossAxisAlignment:
-                                                                CrossAxisAlignment
-                                                                    .end,
-                                                            children: <Widget>[
-                                                              Text(
-                                                                i.date.substring(
-                                                                    0,
-                                                                    i.date.indexOf(
-                                                                        ' ')),
-                                                                style: TextStyle(
-                                                                    color: Theme.of(
-                                                                            context)
-                                                                        .textTheme
-                                                                        .title
-                                                                        .color),
-                                                              ),
-                                                              Text(
-                                                                  i.date.substring(
-                                                                      3,
-                                                                      i.date.lastIndexOf(
-                                                                          ' ')),
-                                                                  style: TextStyle(
-                                                                      color: Theme.of(
-                                                                              context)
-                                                                          .textTheme
-                                                                          .title
-                                                                          .color)),
-                                                            ],
-                                                          ),
-                                                        ),
-                                                        Icon(
-                                                          Icons.event_note,
-                                                          color:
-                                                              Theme.of(context)
-                                                                  .primaryColor,
-                                                          size: 48.0,
-                                                        )
-                                                      ],
-                                                    ),
-                                                    Padding(
-                                                      padding:
-                                                          const EdgeInsets.only(
-                                                              top: 12.0,
-                                                              bottom: 0.0),
-                                                      child: Text(
-                                                        i.newsTitle,
-                                                        maxLines: 2,
-                                                        overflow: TextOverflow
-                                                            .ellipsis,
-                                                        style: TextStyle(
-                                                            color: Color(
-                                                                0xFF333333),
-                                                            height: 1.25,
-                                                            fontSize: 16.0),
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            );
-                                          },
-                                        );
-                                      }).toList(),
-                                      height: 200.0,
-                                      autoPlay: false)
-                                  : Container(
-                                      padding:
-                                          EdgeInsets.symmetric(vertical: 16.0),
-                                      child: CircularProgressIndicator(
-                                        valueColor: AlwaysStoppedAnimation(
-                                            Theme.of(context).primaryColor),
+                                                      .primaryColor,
+                                                  fontSize: 16.0),
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                     )
+                                  : _isLoading == true
+                                      ? CarouselSlider(
+                                          distortion: false,
+                                          items: newsList.map((i) {
+                                            return Builder(
+                                              builder: (BuildContext context) {
+                                                return Container(
+                                                  margin: EdgeInsets.fromLTRB(
+                                                      12.0, 8.0, 12.0, 8.0),
+                                                  decoration: BoxDecoration(
+                                                      color: Theme.of(context)
+                                                          .textTheme
+                                                          .title
+                                                          .color,
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              10.0),
+                                                      boxShadow: [
+                                                        BoxShadow(
+                                                            color:
+                                                                Color.fromRGBO(
+                                                                    114,
+                                                                    187,
+                                                                    83,
+                                                                    0.5),
+                                                            blurRadius: 10.0)
+                                                      ]),
+                                                  child: FlatButton(
+                                                    highlightColor:
+                                                        Colors.transparent,
+                                                    shape:
+                                                        RoundedRectangleBorder(
+                                                            borderRadius:
+                                                                BorderRadius
+                                                                    .circular(
+                                                                        10.0)),
+                                                    padding:
+                                                        EdgeInsets.all(16.0),
+                                                    onPressed: () {
+                                                      Navigator.push(
+                                                          context,
+                                                          SlideFromBottomAnimation(
+                                                              widget: NewsPage(
+                                                            news: i,
+                                                            language: language,
+                                                            appbarTitle:
+                                                                menuNews,
+                                                          )));
+                                                    },
+                                                    child: Column(
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
+                                                      children: <Widget>[
+                                                        Row(
+                                                          mainAxisAlignment:
+                                                              MainAxisAlignment
+                                                                  .spaceBetween,
+                                                          children: <Widget>[
+                                                            Container(
+                                                              alignment:
+                                                                  AlignmentDirectional
+                                                                      .centerStart,
+                                                              padding:
+                                                                  EdgeInsets
+                                                                      .all(8.0),
+                                                              color: Theme.of(
+                                                                      context)
+                                                                  .primaryColor,
+                                                              child: Column(
+                                                                crossAxisAlignment:
+                                                                    CrossAxisAlignment
+                                                                        .end,
+                                                                children: <
+                                                                    Widget>[
+                                                                  Text(
+                                                                    i.date.substring(
+                                                                        0,
+                                                                        i.date.indexOf(
+                                                                            ' ')),
+                                                                    style: TextStyle(
+                                                                        color: Theme.of(context)
+                                                                            .textTheme
+                                                                            .title
+                                                                            .color),
+                                                                  ),
+                                                                  Text(
+                                                                      i.date.substring(
+                                                                          3,
+                                                                          i.date.lastIndexOf(
+                                                                              ' ')),
+                                                                      style: TextStyle(
+                                                                          color: Theme.of(context)
+                                                                              .textTheme
+                                                                              .title
+                                                                              .color)),
+                                                                ],
+                                                              ),
+                                                            ),
+                                                            Icon(
+                                                              Icons.event_note,
+                                                              color: Theme.of(
+                                                                      context)
+                                                                  .primaryColor,
+                                                              size: 48.0,
+                                                            )
+                                                          ],
+                                                        ),
+                                                        Padding(
+                                                          padding:
+                                                              const EdgeInsets
+                                                                      .only(
+                                                                  top: 12.0,
+                                                                  bottom: 0.0),
+                                                          child: Text(
+                                                            i.newsTitle,
+                                                            maxLines: 2,
+                                                            overflow:
+                                                                TextOverflow
+                                                                    .ellipsis,
+                                                            style: TextStyle(
+                                                                color: Color(
+                                                                    0xFF333333),
+                                                                height: 1.25,
+                                                                fontSize: 16.0),
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                );
+                                              },
+                                            );
+                                          }).toList(),
+                                          height: 200.0,
+                                          autoPlay: false)
+                                      : Container(
+                                          padding: EdgeInsets.symmetric(
+                                              vertical: 16.0),
+                                          child: CircularProgressIndicator(
+                                            valueColor: AlwaysStoppedAnimation(
+                                                Theme.of(context).primaryColor),
+                                          ),
+                                        )
                             ],
                           ),
                       childCount: 1),

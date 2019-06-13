@@ -89,8 +89,9 @@ class _HospitalState extends State<Hospital>
         });
       });
     }
-    print('done');
-    loading = false;
+    setState(() {
+      loading = false;
+    });
   }
 
   @override
@@ -127,7 +128,28 @@ class _HospitalState extends State<Hospital>
       body: Container(
         child: _connection == false
             ? Center(
-                child: Text(_conStatus),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 16.0),
+                      child: Icon(
+                        Icons.signal_cellular_connected_no_internet_4_bar,
+                        color: Theme.of(context).primaryColor,
+                        size: 36.0,
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 16.0),
+                      child: Text(
+                        _conStatus,
+                        style: TextStyle(
+                            color: Theme.of(context).primaryColor,
+                            fontSize: 16.0),
+                      ),
+                    ),
+                  ],
+                ),
               )
             : Container(
                 child: typearr.length != category.length || loading
